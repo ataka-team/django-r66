@@ -19,7 +19,8 @@ def index(request):
     context_dict = {}
     context_dict = RequestContext(request)
     context_dict = RequestContext(request, {
-            'foo': 'bar',
+            'title': 'Title',
+            'content_description': 'Description for this content',
             })
     return render_to_response('r66/index.html', context_dict)
 
