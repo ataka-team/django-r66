@@ -25,9 +25,11 @@ setup(
     packages = find_packages(),
     package_data={
         'r66': [
-            'templates/admin/r66/application/*.html',
+            'templates/r66/*.html',
             'static/*/css/*.css',
-            'static/*/img/*',
+            'static/*/img/*.png',
+            'static/*/img/*.jpg',
+            'static/*/img/*/*',
             'static/*/js/*.js',
         ],
     },
