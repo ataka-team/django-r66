@@ -1,0 +1,93 @@
+#!/usr/bin/env python
+
+from optparse import OptionParser
+import os
+import sys
+
+DEVICE="/dev/sdd"
+
+IMAGE_NAME="imagename"
+IMAGE_TAG="001"
+IMAGE_REPO_DIR="./local/r66/images"
+
+DESCRIPTION="No description"
+
+cmdline_parser = OptionParser()
+cmdline_parser.add_option("-d", "--device",  dest="device",
+        help="Image device (default: %s)" % DEVICE,
+        default=DEVICE)
+cmdline_parser.add_option("-n", "--name", dest="image_name",
+        default=IMAGE_NAME,
+        help="Work directory (default: %s)" % IMAGE_NAME)
+cmdline_parser.add_option("-t", "--tag", dest="tag",
+        default=IMAGE_TAG,
+        help="Channel Id (default: %s)" % IMAGE_TAG)
+cmdline_parser.add_option("-r", "--repository",
+        dest="repository", default=IMAGE_REPO_DIR,
+        help="Image repository directory (default: %s)" % IMAGE_REPO_DIR)
+cmdline_parser.add_option("-D", "--description",
+        dest="description", default=DESCRIPTION,
+        help="Image tag description (default: %s)" % DESCRIPTION)
+cmdline_parser.add_option("-F", "--force",
+        action="store_true", dest="force", default=False,
+        help="Force creating tag image although exists a previous one")
+
+
+
+(ops, sys.argv) = cmdline_parser.parse_args()
+
+DEVICE=ops.device
+
+IMAGE_NAME=ops.image_name
+IMAGE_TAG=ops.tag
+IMAGE_REPO_DIR=ops.repository
+
+DESCRIPTION=ops.description
+
+
+if os.path.exists(IMAGE_REPO_DIR + "/" + IMAGE_NAME + "_" + IMAGE_TAG) \
+        and not ops.force:
+            print \
+'''Error: Tag for this image already exists.
+       Force this action using -F option.'''
+            sys.exit(-1)
+
+print "Creating tag directory ..."
+_cmd ="mkdir -p " + IMAGE_REPO_DIR + "/" + IMAGE_NAME + "_" + IMAGE_TAG + "/images/"
+print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+print "Saving the image description ..."
+_cmd ='echo ' + DESCRIPTION + " > " + IMAGE_REPO_DIR + "/" +  IMAGE_NAME + "_" + IMAGE_TAG + "/ABOUT"
+print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+_cmd = "date  > " + IMAGE_REPO_DIR + "/" +  IMAGE_NAME + "_" + IMAGE_TAG + "/DATE"
+print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+
+
+
+
+for d in os.listdir(os.path.dirname(DEVICE)):
+
+   if d.startswith(os.path.basename(DEVICE)):
+     print "Dumping " + d + " ..."
+     _cmd ="cat " + os.path.dirname(DEVICE) + "/" + d + " | gzip > " + IMAGE_REPO_DIR + "/" + IMAGE_NAME + "_" + IMAGE_TAG + "/images/" + d + ".img.gz"
+     print "  " +  _cmd
+     _aux_f = os.popen(_cmd)
+     for l in _aux_f:
+        pass
+
+     _cmd ="md5sum " + IMAGE_REPO_DIR + "/" + IMAGE_NAME + "_" + IMAGE_TAG + "/images/" + d + ".img.gz > " + IMAGE_REPO_DIR + "/" + IMAGE_NAME + "_" + IMAGE_TAG + "/images/" + d + ".img.gz.md5sum "
+     _aux_f = os.popen(_cmd)
+     print "  " +  _cmd
+     for l in _aux_f:
+        pass

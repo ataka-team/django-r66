@@ -1,0 +1,14 @@
+#! /bin/bash -x
+
+/bin/rm /etc/udev/rules.d/70-persistent-net.rules
+
+/usr/sbin/logrotate  -f /etc/logrotate.conf
+/usr/sbin/logrotate  -f /etc/logrotate.conf
+/usr/sbin/logrotate  -f /etc/logrotate.conf
+
+/bin/mv /etc/apt/sources.list /etc/apt/sources.list.tmp
+/bin/touch  /etc/apt/sources.list 
+/usr/bin/apt-get update
+/usr/bin/apt-get clean
+/bin/mv /etc/apt/sources.list.tmp /etc/apt/sources.list
+

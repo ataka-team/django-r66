@@ -1,0 +1,4 @@
+include README.md
+recursive-include r66/templates *
+recursive-include r66/static *
+recursive-include r66/locale *
