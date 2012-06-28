@@ -24,7 +24,8 @@ setup(
     download_url= 'https://github.com/ataka-team/django-r66/zipball/master',
     packages = find_packages(),
     scripts=[
-        "tools/r66-*",
+        "tools/r66-dump-image",
+        "tools/r66-prepare-rfs",
     ],
     package_data={
         'r66': [
