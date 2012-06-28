@@ -23,6 +23,9 @@ setup(
     url = 'http://github.com/ataka-team/django-r66',
     download_url= 'https://github.com/ataka-team/django-r66/zipball/master',
     packages = find_packages(),
+    scripts=[
+        "tools/r66-*",
+    ],
     package_data={
         'r66': [
             'templates/r66/*.html',
