@@ -13,6 +13,7 @@ from django.core import serializers
 from django import forms
 from django.contrib.auth.decorators import login_required
 
+from r66 import helpers
 
 def index(request):
 
@@ -23,5 +24,15 @@ def index(request):
             'content_description': 'Description for this content',
             })
     return render_to_response('r66/index.html', context_dict)
+
+
+def home(request, page_id):
+    context_dict = helpers._create_context(request)
+    context_dict["title"] = "Home"
+    context_dict["content_description"] = "Description for this content"
+    context_dict["page_id"] = page_id
+    context = RequestContext(request, context_dict)
+
+    return render_to_response('r66/home.html', context)
 
 
