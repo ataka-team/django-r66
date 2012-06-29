@@ -1,0 +1,101 @@
+{% extends "r66/base.html" %}
+{% load i18n %}
+{% load r66_extras %}
+{% load sekizai_tags %}
+
+        {% block sidebar %}
+        {% render_home_menu page_id %}
+        {% endblock sidebar %}
+
+
+
+          {% block content %}
+            {% block object-tools %}
+            {% endblock %}
+            {{ content }}
+
+
+    <div id="div-ifaces">
+      <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+      <th> Name </th>
+      <th> Status </th>
+      <th> Type </th>
+      <th> Action </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      </tr>
+      </tbody>
+      </table>
+    </div>
+
+{% addtoblock "js" %}
+<script type="text/javascript">
+
+  function mys_js_callback(data){
+    var table_ifaces_items = [];
+
+    $.each(data, function(key_iface, iface) {
+
+      var type = "Ethernet";
+      if (iface["wifi"] != undefined){
+        type = "WiFi"
+      }
+      if ( $.inArray("LOOPBACK", iface["flags"]) >= 0){
+        type = "Loopback"
+      }
+      table_ifaces_items.push(
+        "<tr><td>" + iface["name"] + "</td>" +
+        "<td>" + iface["state"] + "</td>" +
+        "<td>" + type + "</td>" +
+        "<td>" + "" + "</td></tr>"
+      );
+    })
+
+
+    var table = $('<table class="table table-bordered table-striped"/>');
+
+    var html_table_head = ' ' +
+      '<thead><tr> ' +
+      '  <th>Name</th> ' +
+      '  <th>Status</th> ' +
+      '  <th>Type</th> ' +
+      '  <th>Action</th> ' +
+      '</tr></thead>';
+    var table_head = $(html_table_head);
+
+    var table_body = $('<tbody/>',{
+        html: table_ifaces_items.join('\n')
+    });
+
+    $("#div-ifaces").replaceWith('<div id="div-ifaces" />');
+    table.appendTo('#div-ifaces');
+    table_head.appendTo(table);
+    table_body.appendTo(table);
+
+
+  }
+
+
+
+  $( function() {
+
+    Dajaxice.r66.search_devices(mys_js_callback)
+
+  });
+
+</script>
+{% endaddtoblock %}
+
+
+
+          {% endblock %}
+
+

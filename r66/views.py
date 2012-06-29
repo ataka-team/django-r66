@@ -28,11 +28,28 @@ def index(request):
 
 def home(request, page_id):
     context_dict = helpers._create_context(request)
-    context_dict["title"] = "Home"
-    context_dict["content_description"] = "Description for this content"
     context_dict["page_id"] = page_id
     context = RequestContext(request, context_dict)
 
-    return render_to_response('r66/home.html', context)
+    if page_id == "interfaces":
+      context_dict["title"] = "Interfaces"
+      context_dict["content_description"] = "Description for interfaces page"
+
+      return render_to_response('r66/interfaces.html', context)
+
+    if page_id == "search":
+      context_dict["content_description"] = "This list shows network \
+ interfaces detected \
+ by the R66 system. Here, you can add or delete any interface to the \
+ network manager service"
+      context_dict["title"] = "Search network interfaces"
+
+      return render_to_response('r66/search.html', context)
+
+    context_dict["title"] = "Anyother"
+    context_dict["content_description"] = "Description for anyother page"
+
+    return render_to_response('r66/anyother.html', context)
+
 
 

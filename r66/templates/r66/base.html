@@ -1,5 +1,7 @@
 {% load i18n %}
 {% load r66_extras %}
+{% load dajaxice_templatetags %}
+{% load sekizai_tags %}
 
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}" {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
@@ -40,6 +42,7 @@
     {% block extrahead %}{% endblock %}
     {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
 
+    {% dajaxice_js_import %}
   </head>
 
   <body>
@@ -173,7 +176,7 @@
       <hr>
 
       <footer>
-          <a href="http://www.treitos.com"> treitos </a> - &copy; Treitos 2012. <a href="http://creativecommons.org/licenses/by-sa/3.0/">Some rights</a> reserved.
+        <a href="http://www.treitos.com"> treitos </a> - &copy; Treitos 2012. <a href="http://creativecommons.org/licenses/by-sa/3.0/">Some rights</a> reserved.
       </footer>
 
     </div><!--/.fluid-container-->
@@ -198,6 +201,7 @@
     <script src="{{ STATIC_URL }}r66-bootstrap/js/bootstrap-typeahead.js"></script>
 
 
+    {% render_block "js" %}
 
   </body>
 </html>
