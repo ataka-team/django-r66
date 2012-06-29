@@ -61,18 +61,38 @@ def get_wifi_interface_info(name):
   cmd_output = ""
   for l in pipe:
     cmd_output = cmd_output + l.strip() + " "
+
   res["wifi"] = True
   res["name"] = cmd_output.split(" ")[0]
   res["ieee"] = cmd_output.split("IEEE")[1].strip().split(" ")[0]
-  res["essid"] = cmd_output.split("ESSID:")[1].strip().split(" ")[0]
+
+  try:
+    res["frequency"] = cmd_output.split("Frequency:")[1].strip().split(" ")[0]
+  except Exception:
+    pass
+
+  try:
+    res["essid"] = cmd_output.split("ESSID:")[1].strip().split(" ")[0]
+  except Exception:
+    pass
+
   res["mode"] = cmd_output.split("Mode:")[1].strip().split(" ")[0]
-  res["access_point"] = cmd_output.split("Access Point:")[1].strip().split(" ")[0]
+  try:
+    res["access_point"] = cmd_output.split("Access Point:")[1].strip().split(" ")[0]
+  except Exception:
+    pass
+
   res["tx_power"] = cmd_output.split("Tx-Power=")[1].strip().split(" ")[0]
   res["retry_long_limit"] = cmd_output.split("limit:")[1].strip().split(" ")[0]
   res["rts_thr"] = cmd_output.split("RTS thr:")[1].strip().split(" ")[0]
   res["fragment_thr"] = cmd_output.split("Fragment thr:")[1].strip().split(" ")[0]
-  res["encryption_key"] = cmd_output.split("Encryption key:")[1].strip().split(" ")[0]
-  res["power_management"] = cmd_output.split("Encryption key:")[1].strip().split(" ")[0]
+
+  try:
+    res["encryption_key"] = cmd_output.split("Encryption key:")[1].strip().split(" ")[0]
+  except Exception:
+    pass
+
+  res["power_management"] = cmd_output.split("Power Management:")[1].strip().split(" ")[0]
   return res
 
 
