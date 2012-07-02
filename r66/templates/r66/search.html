@@ -48,7 +48,12 @@
       if (iface["wifi"] != undefined){
         type = "WiFi"
       }
-      if ( $.inArray("LOOPBACK", iface["flags"]) >= 0){
+
+			if ( $.inArray("POINTOPOINT", iface["flags"]) >= 0){
+        type = "PointToPoint"
+      }
+
+			if ( $.inArray("LOOPBACK", iface["flags"]) >= 0){
         type = "Loopback"
       }
       table_ifaces_items.push(
