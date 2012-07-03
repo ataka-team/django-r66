@@ -1,0 +1,139 @@
+{% extends "r66/base.html" %}
+{% load i18n %}
+{% load r66_extras %}
+{% load sekizai_tags %}
+
+
+        {% block sidebar %}
+        {% render_home_menu page_id %}
+        {% endblock sidebar %}
+
+
+
+          {% block content %}
+            {% block object-tools %}
+            {% endblock %}
+            {{ content }}
+
+
+    <div id="div-bridges">
+      <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+      <th> Name </th>
+      <th> Status </th>
+      <th> Action </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      </tr>
+      </tbody>
+      </table>
+    </div>
+
+    <form class="well form-inline"> 
+      <input id="add-netbridge-name" type="text" class="input-small" placeholder="Bridge name">
+      <input id="add-netbridge-description" type="text" class="input-small" placeholder="Bridge description">
+      <button onclick="add_netbridge();" 
+        type="button" class="btn btn-success">Add bridge</button>
+    </form>
+
+
+
+{% addtoblock "js" %}
+<script type="text/javascript">
+
+  function add_netbridge(){
+
+     var name = $("#add-netbridge-name").val();
+     var description = $("#add-netbridge-description").val();
+		 Dajaxice.r66.add_netbridge(mys_js_callback,
+				 {
+				   'name': name,
+				   'description': description 
+					 });
+
+		 return false;
+  }
+
+  function mys_js_callback(data){
+    var table_bridges_items = [];
+
+		$.each(data, function(key_bridge, bridge) {
+
+			var state = 'disabled'; 
+      if (bridge["fields"]["enabled"] ){
+				state = 'enabled'; 
+      }
+
+			var action_button = '' 
+			  + '<button onclick="Dajaxice.r66.enable_netbridge(mys_js_callback,' 
+			  + '{\'name\': \'' + bridge["fields"]["name"] + '\'})"' 
+			  + ');" href="#" class="btn btn-success">Enable</button>';
+
+      if (bridge["fields"]["enabled"] ){
+				action_button = '' 
+			+ '<button onclick="Dajaxice.r66.disable_netbridge(mys_js_callback,' 
+			+ '{\'name\': \'' + bridge["fields"]["name"] + '\'})"' 
+			+ ');" href="#" class="btn btn-danger">Disable</button>';
+			}
+
+			action_button = action_button 
+			  + '<button onclick="Dajaxice.r66.delete_netbridge(mys_js_callback,' 
+			  + '{\'name\': \'' + bridge["fields"]["name"] + '\'})"' 
+			  + ');" href="#" class="btn btn-danger">Delete</button>';
+
+      table_bridges_items.push(
+        "<tr><td>" + bridge["fields"]["name"] + "</td>" +
+        "<td>" + state + "</td>" + 
+        "<td>" + bridge["fields"]["description"] + "</td>" +
+				"<td>" + action_button + "</td></tr>"  
+      );
+    })
+
+
+    var table = $('<table class="table table-bordered table-striped"/>');
+
+    var html_table_head = ' ' +
+      '<thead><tr> ' +
+      '  <th>Name</th> ' +
+      '  <th>State</th> ' +
+      '  <th>Description</th> ' +
+      '  <th>Action</th> ' +
+      '</tr></thead>';
+    var table_head = $(html_table_head);
+
+    var table_body = $('<tbody/>',{
+        html: table_bridges_items.join('\n')
+    });
+
+    $("#div-bridges").replaceWith('<div id="div-bridges" />');
+    table.appendTo('#div-bridges');
+    table_head.appendTo(table);
+    table_body.appendTo(table);
+
+
+  }
+
+
+
+  $( function() {
+
+    Dajaxice.r66.get_netbridges(mys_js_callback)
+
+  });
+
+</script>
+{% endaddtoblock %}
+
+
+
+
+          {% endblock %}
+
+

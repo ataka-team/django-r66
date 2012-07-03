@@ -53,7 +53,9 @@
 			+ '{\'name\': \'' + iface["name"] + '\'})"' 
 			+ ');" href="#" class="btn btn-danger">Delete</button>';
       }
-
+			if (iface["bridge"] != undefined) {
+				action_button = ""; // No actions for bridge devices
+      }
 
       var type = "Ethernet";
       if (iface["wifi"] != undefined){

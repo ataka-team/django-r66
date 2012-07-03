@@ -33,9 +33,15 @@ def home(request, page_id):
 
     if page_id == "interfaces":
       context_dict["title"] = "Interfaces"
-      context_dict["content_description"] = "Description for interfaces page"
+      context_dict["content_description"] = "Network interfaces managed by R66"
 
       return render_to_response('r66/interfaces.html', context)
+
+    if page_id == "bridges":
+      context_dict["title"] = "Bridges"
+      context_dict["content_description"] = "Network bridges managed by R66"
+
+      return render_to_response('r66/bridges.html', context)
 
     if page_id == "search":
       context_dict["content_description"] = "This list shows network \

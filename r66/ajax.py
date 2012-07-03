@@ -12,11 +12,10 @@ def search_devices(request):
 
     for i in ifaces:
         res[i]=netutils.get_interface_info(i)
-        try: # asume it is a wifi device
-           wifi_ifaces.index(i)
+        if netutils.is_wifi_interface(i):
            res[i]["wifi"]=netutils.get_wifi_interface_info(i)
-        except ValueError:
-           pass
+        if netutils.is_bridge(i):
+           res[i]["bridge"]=netutils.get_bridge_interface_info(i)
 
         try:
            _objs = models.NetIface.objects.filter(name=i)
@@ -38,15 +37,6 @@ def get_netifaces(request):
     data = serializers.serialize('json', ifaces,
         fields=('name','description', 'enabled'))
 
-    # for i in ifaces:
-    #     res[i]=netutils.get_interface_info(i)
-    #     try: # asume it is a wifi device
-    #        wifi_ifaces.index(i)
-    #        res[i]["wifi"]=netutils.get_wifi_interface_info(i)
-    #     except ValueError:
-    #        continue
-
-    # return simplejson.dumps(res)
     return data
 
 dajaxice_functions.register(get_netifaces)
@@ -97,4 +87,64 @@ def disable_netiface(request,name):
 
     return get_netifaces(request)
 dajaxice_functions.register(disable_netiface)
+
+def get_netbridges(request):
+    bridges = models.NetBridge.objects.all()
+
+    # res = {}
+
+    data = serializers.serialize('json', bridges,
+        fields=('name','description', 'enabled'))
+
+    return data
+
+dajaxice_functions.register(get_netbridges)
+
+def add_netbridge(request,name, description=""):
+    _objs = models.NetBridge.objects.filter(name=name)
+    if len(_objs)>0: # Already exists 
+      pass
+    else:
+      _netbridge = models.NetBridge(enabled=False, name=name,
+              description=description)
+      _netbridge.save()
+
+    return get_netbridges(request)
+dajaxice_functions.register(add_netbridge)
+
+def delete_netbridge(request,name):
+    _objs = models.NetBridge.objects.filter(name=name)
+
+    if len(_objs)>0: # exists 
+      _objs.delete()
+    else:
+      pass
+
+    return get_netbridges(request)
+dajaxice_functions.register(delete_netbridge)
+
+def enable_netbridge(request,name):
+    _objs = models.NetBridge.objects.filter(name=name)
+
+    if len(_objs)>0: # exists 
+      _objs[0].enabled=True
+      _objs[0].save()
+    else:
+      pass
+
+    return get_netbridges(request)
+dajaxice_functions.register(enable_netbridge)
+
+def disable_netbridge(request,name):
+    _objs = models.NetBridge.objects.filter(name=name)
+
+    if len(_objs)>0: # exists 
+      _objs[0].enabled=False
+      _objs[0].save()
+    else:
+      pass
+
+    return get_netbridges(request)
+dajaxice_functions.register(disable_netbridge)
+
 
