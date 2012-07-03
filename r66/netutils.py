@@ -4,6 +4,7 @@ import subprocess
 IFCONFIG = "/sbin/ifconfig"
 CMD_IP = "/bin/ip"
 CMD_IWCONFIG = "/sbin/iwconfig"
+CMD_BRCTL = "/sbin/brctl"
 
 def get_interfaces_names():
   res = []
@@ -14,6 +15,13 @@ def get_interfaces_names():
     res.append(l.split(":")[1].strip())
   return res
 
+def is_interface(name):
+    interfaces = get_interfaces_names()
+    try:
+        interfaces.index(name)
+        return True
+    except ValueError:
+        return False
 
 def get_interface_info(name):
   res = {}
@@ -45,6 +53,15 @@ def get_wifi_interfaces_names():
       continue # isnt a WiFi device
     res.append(l.split(" ")[0])
   return res
+
+
+def is_wifi_interface(name):
+    wifis = get_wifi_interfaces_names()
+    try:
+        wifis.index(name)
+        return True
+    except ValueError:
+        return False
 
 
 def get_wifi_interface_info(name):
@@ -96,6 +113,81 @@ def get_wifi_interface_info(name):
   return res
 
 
+def get_bridge_interfaces_names():
+  res = []
+  pipe = subprocess.Popen( CMD_BRCTL + " show", shell=True, bufsize=0,
+    stdout=subprocess.PIPE, stderr=open('/dev/null', 'w')).stdout
 
+  firstline = pipe.readline()
+  f = firstline # Nothing to do. It's the header
+
+  for l in pipe:
+    if l.startswith("\t"):
+      continue
+    res.append(l.split("\t")[0])
+  return res
+
+
+def is_bridge(name):
+    bridges = get_bridge_interfaces_names()
+    try:
+        bridges.index(name)
+        return True
+    except ValueError:
+        return False
+
+
+def get_bridge_interface_info(name):
+  res = {}
+
+  pipe = subprocess.Popen( CMD_BRCTL + " show", shell=True, bufsize=0,
+    stdout=subprocess.PIPE, stderr=open('/dev/null', 'w')).stdout
+  firstline = pipe.readline()
+  f = firstline # Nothing to do. It's the header
+  bridge_name_found = False
+
+  for l in pipe:
+    ll = l.strip()
+    lll = l.split("\t")
+    if bridge_name_found:
+        if lll[0] == "":
+            res["interfaces"].append(ll)
+        else:
+            break
+    if lll[0] == name:
+        bridge_name_found = True
+
+        while True: # deleting empty items
+            try:
+              lll.remove("")
+            except ValueError:
+              break
+        try:
+            res["name"] = name.strip()
+        except Exception:
+            pass
+
+        try:
+            res["id"] = lll[1].strip()
+        except Exception:
+            pass
+
+        try:
+            _stp = lll[2].strip()
+            res["stp"] = True
+            if _stp == "no":
+              res["stp"] = False
+        except Exception:
+            pass
+
+        try:
+            if lll[3].strip() == "":
+              res["interfaces"] = []
+            else:
+              res["interfaces"] = [lll[3].strip()]
+        except Exception:
+            pass
+
+  return res
 
 
