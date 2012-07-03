@@ -42,7 +42,18 @@
   function mys_js_callback(data){
     var table_ifaces_items = [];
 
-    $.each(data, function(key_iface, iface) {
+		$.each(data, function(key_iface, iface) {
+				
+      var action_button = '<button onclick="Dajaxice.r66.add_netiface(mys_js_callback,' 
+			  + '{\'name\': \'' + iface["name"] + '\'})"' 
+			  + ');" href="#" class="btn btn-success">Add</button>';
+
+      if (iface["added"] ){
+  		  action_button = '<button onclick="Dajaxice.r66.delete_netiface(mys_js_callback,' 
+			+ '{\'name\': \'' + iface["name"] + '\'})"' 
+			+ ');" href="#" class="btn btn-danger">Delete</button>';
+      }
+
 
       var type = "Ethernet";
       if (iface["wifi"] != undefined){
@@ -60,7 +71,7 @@
         "<tr><td>" + iface["name"] + "</td>" +
         "<td>" + iface["state"] + "</td>" +
         "<td>" + type + "</td>" +
-        "<td>" + "" + "</td></tr>"
+        "<td>" +  action_button + "</td></tr>"
       );
     })
 

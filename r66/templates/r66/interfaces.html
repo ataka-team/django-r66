@@ -1,6 +1,8 @@
 {% extends "r66/base.html" %}
 {% load i18n %}
 {% load r66_extras %}
+{% load sekizai_tags %}
+
 
         {% block sidebar %}
         {% render_home_menu page_id %}
@@ -11,7 +13,102 @@
           {% block content %}
             {% block object-tools %}
             {% endblock %}
-            {{ content }}
+						{{ content }}
+
+    <div id="div-ifaces">
+      <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+      <th> Name </th>
+      <th> Status </th>
+      <th> Type </th>
+      <th> Action </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      </tr>
+      </tbody>
+      </table>
+    </div>
+
+
+{% addtoblock "js" %}
+<script type="text/javascript">
+
+  function mys_js_callback(data){
+    var table_ifaces_items = [];
+
+		$.each(data, function(key_iface, iface) {
+
+			var state = 'disabled'; 
+      if (iface["fields"]["enabled"] ){
+				state = 'enabled'; 
+      }
+
+			var action_button = '' 
+			  + '<button onclick="Dajaxice.r66.enable_netiface(mys_js_callback,' 
+			  + '{\'name\': \'' + iface["fields"]["name"] + '\'})"' 
+			  + ');" href="#" class="btn btn-success">Enable</button>';
+
+      if (iface["fields"]["enabled"] ){
+				action_button = '' 
+			+ '<button onclick="Dajaxice.r66.disable_netiface(mys_js_callback,' 
+			+ '{\'name\': \'' + iface["fields"]["name"] + '\'})"' 
+			+ ');" href="#" class="btn btn-danger">Disable</button>';
+      }
+
+
+      table_ifaces_items.push(
+        "<tr><td>" + iface["fields"]["name"] + "</td>" +
+        "<td>" + state + "</td>" + 
+        "<td>" + action_button + "</td>" + 
+        "<td>" + iface["fields"]["description"] + "</td></tr>"
+      );
+    })
+
+
+    var table = $('<table class="table table-bordered table-striped"/>');
+
+    var html_table_head = ' ' +
+      '<thead><tr> ' +
+      '  <th>Name</th> ' +
+      '  <th>State</th> ' +
+      '  <th>Activation state</th> ' +
+      '  <th>Description</th> ' +
+      '</tr></thead>';
+    var table_head = $(html_table_head);
+
+    var table_body = $('<tbody/>',{
+        html: table_ifaces_items.join('\n')
+    });
+
+    $("#div-ifaces").replaceWith('<div id="div-ifaces" />');
+    table.appendTo('#div-ifaces');
+    table_head.appendTo(table);
+    table_body.appendTo(table);
+
+
+  }
+
+
+
+  $( function() {
+
+    Dajaxice.r66.get_netifaces(mys_js_callback)
+
+  });
+
+</script>
+{% endaddtoblock %}
+
+
+
+
           {% endblock %}
 
 
