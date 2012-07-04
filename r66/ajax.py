@@ -33,8 +33,6 @@ dajaxice_functions.register(search_devices)
 def get_netifaces(request):
     ifaces = models.NetIface.objects.all()
 
-    # res = {}
-
     data = serializers.serialize('json', ifaces,
         fields=('name','description', 'enabled'))
 
@@ -45,14 +43,25 @@ dajaxice_functions.register(get_netifaces)
 def get_netiface_profiles(request):
     iface_profiles = models.NetIfaceProfile.objects.all()
 
-    # res = {}
-
     data = serializers.serialize('json', iface_profiles,
         fields=('name','description', 'enabled', 'netiface', 'netiface_type'))
 
     return data
 
 dajaxice_functions.register(get_netiface_profiles)
+
+def get_netiface_profile_settings(request,id):
+    try:
+      _objs = models.NetIfaceProfile.objects.filter(id=id)
+    except Exception, e:
+      res = {"error": str(e)}
+      return simplejson.dumps(res)
+
+    data = serializers.serialize('json', _objs)
+    return data
+
+dajaxice_functions.register(get_netiface_profile_settings)
+
 
 
 def add_netiface(request,name):

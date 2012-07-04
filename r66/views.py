@@ -14,6 +14,8 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 
 from r66 import helpers
+import r66.forms
+import r66.models
 
 def index(request):
 
@@ -58,12 +60,12 @@ def home(request, page_id):
     return render_to_response('r66/anyother.html', context)
 
 
-def bridges(request, page_id=None):
-    if not page_id:
-        page_id = "bridge_profiles"
+def bridges(request, profile_id=None):
+    page_id = "bridge_profiles"
 
     context_dict = helpers._create_context(request)
     context_dict["page_id"] = page_id
+    context_dict["selected_profile"] = profile_id
     context = RequestContext(request, context_dict)
 
     context_dict["title"] = "Bridges"
@@ -72,17 +74,59 @@ def bridges(request, page_id=None):
 
     return render_to_response('r66/bridge_profile.html', context)
 
-def interfaces(request, page_id=None):
-    if not page_id:
-        page_id = "interface_profiles"
+def interfaces(request, profile_id=None):
+    page_id = "interface_profiles"
 
     context_dict = helpers._create_context(request)
     context_dict["page_id"] = page_id
+    context_dict["selected_profile"] = profile_id
     context = RequestContext(request, context_dict)
 
     context_dict["title"] = "Interfaces"
     context_dict["content_description"] = "Network interfaces and network " + \
 "interfaces profiles managed by R66"
+
+    p = None
+    try:
+      p = r66.models.NetIfaceProfile.objects.get(pk=profile_id)
+    except Exception:
+      p = None
+
+    if p:
+      context_dict["net_settings_form"] = \
+            r66.forms.NetSettingsForm(instance = \
+              p.net_settings, prefix="net"
+            )
+      context_dict["wifi_settings_form"] = \
+            r66.forms.WirelessSettingsForm (instance = \
+              p.wifi_settings, prefix="wifi"
+            )
+      context_dict["dhcpd_settings_form"] = \
+            r66.forms.DhcpdSettingsForm (instance = \
+              p.dhcpd_settings, prefix="dhcpd"
+            )
+      context_dict["netiface_profile_form"] = \
+            r66.forms.NetIfaceProfileForm (instance = \
+              p, prefix="profile"
+            )
+    else:
+      context_dict["net_settings_form"] = \
+            r66.forms.NetSettingsForm(instance = \
+              None, prefix="net"
+            )
+      context_dict["wifi_settings_form"] = \
+            r66.forms.WirelessSettingsForm (instance = \
+              None, prefix="wifi"
+            )
+      context_dict["dhcpd_settings_form"] = \
+            r66.forms.DhcpdSettingsForm (instance = \
+              None, prefix="dhcpd"
+            )
+      context_dict["netiface_profile_form"] = \
+            r66.forms.NetIfaceProfileForm (instance = \
+              None, prefix="profile"
+            )
+
 
     return render_to_response('r66/interface_profile.html', context)
 

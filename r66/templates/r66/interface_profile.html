@@ -19,44 +19,42 @@
             {% endblock %}
 						{{ content }}
 
-    <div id="div-ifaces">
-      <table class="table table-bordered table-striped">
-      <thead>
-      <tr>
-      <th> Name </th>
-      <th> Status </th>
-      <th> Type </th>
-      <th> Action </th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr>
-      <td>…</td>
-      <td>…</td>
-      <td>…</td>
-      <td>…</td>
-      </tr>
-      </tbody>
-      </table>
+    <div id="div-form" class="span6">
+			{{ netiface_profile_form.as_p }}
+			{{ net_settings_form.as_p }}
+			{{ wifi_settings_form.as_p }}
+			{{ dhcpd_settings_form.as_p }}
     </div>
 
 
 {% addtoblock "js" %}
 <script type="text/javascript">
-  var selected_interface_profile = undefined;
 
+	{% if selected_profile %}
+  	var selected_profile = {{ selected_profile }};
+  {% else %}
+	  var selected_profile = undefined;
+  {% endif %}
+																																		
 	function get_netiface_profiles_js_callback(data){
 
 		var items = new Array();
-
 		$.each(data, function(key_profile, profile) {
       if ( items[profile["fields"]["netiface"]] == undefined )
 			{
 			  items[profile["fields"]["netiface"]] = [];
 			}
+			var active = "";
+			if  (selected_profile == profile["pk"] )
+			{
+			  active = 'class="active"';
+			}
+
       items[profile["fields"]["netiface"]].push(
-					'<li>' 
+				'<li ' + active + '>'
+  				+ '<a href="{% url r66-interfaces  %}' + profile["pk"] + '">'
 					+ profile["pk"] 
+					+ '</a>'
 					+ '</li>'
       );
     });
@@ -79,7 +77,10 @@
 					'<li id="nav-header-' + iface["pk"] + '" class="nav-header">' 
 					+ iface["fields"]["name"] + '</li>' 
 					+ ' <li id="nav-li-' + iface["pk"] + '"> ' 
+					+ ' <a href="#"> ... </a></li>'
+					+ ' <li> ' 
 					+ ' <a href="#"> Add profile </a></li>'
+
 				);
 
     });
@@ -96,7 +97,10 @@
 
   $( function() {
 
-    Dajaxice.r66.get_netifaces(get_netifaces_js_callback)
+	  Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
+
+		Dajaxice.r66.get_netiface_profile_settings(get_netiface_profile_js_callback, 
+			{'id':selected_profile});
 
   });
 

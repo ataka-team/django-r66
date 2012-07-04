@@ -13,7 +13,14 @@ urlpatterns = patterns('r66.views',
         None, 'r66-bridges'),
     (r'^interfaces/index.html$',
         'interfaces',
+        None, 'r66-interfaces-index'),
+    (r'^interfaces/$',
+        'interfaces',
         None, 'r66-interfaces'),
+    (r'^interfaces/(?P<profile_id>\d+)$',
+        'interfaces',
+        None, 'r66-interfaces-profile'),
+
 
 
 
