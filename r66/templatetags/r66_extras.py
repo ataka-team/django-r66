@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 
 from django.conf import settings
 
+import r66.models
 
 menu = {}
 menu["home"] = ["interfaces", "bridges", "search", "ppp3g"]
@@ -32,6 +33,13 @@ def render_nav_menu(page_id):
     def _aux_active_class (page_id,menu_id):
        return 'class="active"' if if_page_in_menu(page_id, menu_id) else ""
 
+    _first_netiface_profile = [None]
+    try:
+        _first_netiface_profile \
+          = [r66.models.NetIfaceProfile.objects.all()[0].id]
+    except Exception:
+        _first_netiface_profile = [None]
+
     _menu = '''
           <div class="nav-collapse">
             <ul class="nav">
@@ -41,7 +49,8 @@ def render_nav_menu(page_id):
                 + '''">Home</a></li> ''' \
                 + '''<li ''' \
                 + _aux_active_class(page_id,"interfaces") \
-                + ''' > <a href="''' + reverse('r66-interfaces',args=None) \
+                + ''' > <a href="''' \
+                + reverse('r66-interfaces-profile',args=_first_netiface_profile) \
                 + '''">Interfaces</a></li> ''' \
                 + '''<li ''' \
                 + _aux_active_class(page_id,"bridges") \
