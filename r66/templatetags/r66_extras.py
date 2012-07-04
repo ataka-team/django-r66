@@ -33,30 +33,36 @@ def render_nav_menu(page_id):
     def _aux_active_class (page_id,menu_id):
        return 'class="active"' if if_page_in_menu(page_id, menu_id) else ""
 
-    _first_netiface_profile = [None]
-    try:
-        _first_netiface_profile \
-          = [r66.models.NetIfaceProfile.objects.all()[0].id]
-    except Exception:
-        _first_netiface_profile = [None]
-
     _menu = '''
           <div class="nav-collapse">
             <ul class="nav">
                 <li ''' \
                 + _aux_active_class(page_id,"home") \
                 + ''' > <a href="''' + reverse('r66-home',args=["interfaces"]) \
-                + '''">Home</a></li> ''' \
-                + '''<li ''' \
+                + '''">Home</a></li> '''
+
+    ns = r66.models.NetIface.objects.all()
+    if len (r66.models.NetIface.objects.all() ) > 0:
+        any_enabled = False
+        for n in ns:
+            if n.enabled == True:
+                any_enabled = True
+                break
+        if any_enabled:
+            _menu = _menu + '''<li ''' \
                 + _aux_active_class(page_id,"interfaces") \
-                + ''' > <a href="''' \
-                + reverse('r66-interfaces-profile',args=_first_netiface_profile) \
-                + '''">Interfaces</a></li> ''' \
-                + '''<li ''' \
+                + ''' > ''' \
+                + '''<a href="''' \
+                + reverse('r66-interfaces-index',args=None) \
+                + '''">Interfaces</a></li> '''
+
+    if len (r66.models.NetBridge.objects.all() ) > 0:
+        _menu = _menu + '''<li ''' \
                 + _aux_active_class(page_id,"bridges") \
                 + ''' > <a href="''' + reverse('r66-bridges',args=None) \
-                + '''">Bridges</a></li> ''' \
-                + ''' <li ''' \
+                + '''">Bridges</a></li> '''
+
+    _menu = _menu + ''' <li ''' \
                 + _aux_active_class(page_id,"about") \
                 + ''' ><a href="#about">About</a></li>
                 <li ''' \

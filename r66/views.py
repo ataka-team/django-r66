@@ -74,6 +74,7 @@ def bridges(request, profile_id=None):
 
     return render_to_response('r66/bridge_profile.html', context)
 
+
 def interfaces(request, profile_id=None):
     page_id = "interface_profiles"
 
@@ -97,6 +98,10 @@ def interfaces(request, profile_id=None):
             r66.forms.NetSettingsForm(instance = \
               p.net_settings, prefix="net"
             )
+      context_dict["net_settings_extended_form"] = \
+            r66.forms.NetSettingsExtendedForm(instance = \
+              p.net_settings, prefix="netextended"
+            )
       context_dict["wifi_settings_form"] = \
             r66.forms.WirelessSettingsForm (instance = \
               p.wifi_settings, prefix="wifi"
@@ -114,6 +119,10 @@ def interfaces(request, profile_id=None):
             r66.forms.NetSettingsForm(instance = \
               None, prefix="net"
             )
+      context_dict["net_settings_extended_form"] = \
+            r66.forms.NetSettingsExtendedForm(instance = \
+              None, prefix="netextended"
+            )
       context_dict["wifi_settings_form"] = \
             r66.forms.WirelessSettingsForm (instance = \
               None, prefix="wifi"
@@ -129,5 +138,20 @@ def interfaces(request, profile_id=None):
 
 
     return render_to_response('r66/interface_profile.html', context)
+
+
+def interfaces_index (request):
+    _first_netiface_profile = None
+    try:
+        _first_netiface_profile \
+          = r66.models.NetIfaceProfile.objects.all()[0].id
+    except Exception:
+        _first_netiface_profile = None
+
+    return interfaces(request, _first_netiface_profile)
+
+
+def interfaces_new (request):
+    return interfaces(request, None)
 
 

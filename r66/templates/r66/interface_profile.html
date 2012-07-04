@@ -18,25 +18,178 @@
             {% block object-tools %}
             {% endblock %}
 						{{ content }}
-
     <div id="div-form" class="span6">
-			{{ netiface_profile_form.as_p }}
-			{{ net_settings_form.as_p }}
-			{{ wifi_settings_form.as_p }}
-			{{ dhcpd_settings_form.as_p }}
+		<form action="" method="post" id="profile_form"
+			accept-charset="utf-8">{% csrf_token %}
+			
+      <table class="table table-striped table-bordered table-condensed">
+      <thead>
+          <tr>
+            <th colspan="2">General settings</th>
+          </tr>
+          <tr>
+            <th>Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+
+        {{ netiface_profile_form.as_table }}
+      </table>
+
+      <table class="table table-striped table-bordered table-condensed">
+      <thead>
+          <tr>
+            <th colspan="2">Network settings</th>
+          </tr>
+          <tr>
+            <th>Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+
+        {{ net_settings_form.as_table }}
+			</table>
+
+      <table class="table table-striped table-bordered table-condensed">
+      <thead>
+          <tr>
+            <th colspan="2">More Network settings</th>
+          </tr>
+          <tr>
+            <th>Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+
+        {{ net_settings_extended_form.as_table }}
+      </table>
+
+
+      <table class="table table-striped table-bordered table-condensed">
+      <thead>
+          <tr>
+            <th colspan="2">Wifi settings</th>
+          </tr>
+          <tr>
+            <th>Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+
+        {{ wifi_settings_form.as_table }}
+      </table>
+
+      <table class="table table-striped table-bordered table-condensed">
+      <thead>
+          <tr>
+            <th colspan="2">DHCP daemon settings</th>
+          </tr>
+          <tr>
+            <th>Name</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+
+        {{ dhcpd_settings_form.as_table }}
+      </table>
+
+      {% if selected_profile %}
+        <div style="display:none">
+          <input type="hidden" 
+            value="{{selected_profile}}" 
+            name="selected_profile">
+        </div>
+      {% endif%}
+
+      {% if selected_profile %}
+			    <p>
+		      <input value="Update profile" id="send_msg"
+					onclick="send_netiface_profile();" type="button" />
+					
+					<input value="Delete profile" id="send_msg"
+					onclick="delete_netiface_profile();" type="button" />
+
+					</p>
+      {% else %}
+          <p><input value="Create profile" id="send_msg"
+          onclick="send_netiface_profile();" type="button" /></p>
+      {% endif %}
+
+    </form>
     </div>
 
 
 {% addtoblock "js" %}
 <script type="text/javascript">
 
-	{% if selected_profile %}
-  	var selected_profile = {{ selected_profile }};
+  {% if selected_profile %}
+    var selected_profile = {{ selected_profile }};
   {% else %}
-	  var selected_profile = undefined;
+    var selected_profile = undefined;
   {% endif %}
-																																		
-	function get_netiface_profiles_js_callback(data){
+
+  function send_netiface_profile_callback(data){
+
+    // Updating netifaces profiles navside
+    Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
+
+    // TODO: Hace falta recojer los errores
+
+    // TODO: Hace falta recojer el success
+
+    /* if (data.status == 'Success!'){
+      $('#contact_errors').html(data.status);
+    }else{
+      for (message in data.status){
+        $('#contact_errors').append("<p><b>" + message + ":</b>" + data.status["message"] + "</p>");
+      }
+			} */
+
+		 if (data.status.length > 0)
+     {
+       error = '<div id="alert-error" class="alert alert-error">'
+        + '  <button class="close" data-dismiss="alert">×</button>'
+				+ '    <ul>';
+
+				for (message in data.status){
+          error = error + "<li>" + data.status[message] + "</li>";
+				}
+
+      error = error + '    </ul>'
+        + '</div>';
+		  $("#alert-error").replaceWith(error);
+		 }
+		 else 
+		 {
+		 	 info = '<div id="alert-info" class="alert alert-info">'
+        + '  <button class="close" data-dismiss="alert">×</button>'
+				+ '    <ul>'
+        + '      <li> Correctly updated </li>'
+        + '    </ul>'
+        + '</div>';
+
+		  $("#alert-info").replaceWith(info);
+		 }
+
+
+
+
+	}
+
+  function delete_netiface_profile(){
+    Dajaxice.r66.delete_netiface_profile(delete_netiface_profile_callback,
+				{'pk':{{ selected_profile }}});
+    return false;
+  }
+
+
+  function send_netiface_profile(){
+    data = $('#profile_form').serializeArray();
+    Dajaxice.r66.send_netiface_profile(send_netiface_profile_callback, {'form':data});
+    return false;
+  }
+
+  function get_netiface_profiles_js_callback(data){
 
 		var items = new Array();
 		$.each(data, function(key_profile, profile) {
@@ -76,10 +229,8 @@
       nav_header_items.push(
 					'<li id="nav-header-' + iface["pk"] + '" class="nav-header">' 
 					+ iface["fields"]["name"] + '</li>' 
-					+ ' <li id="nav-li-' + iface["pk"] + '"> ' 
-					+ ' <a href="#"> ... </a></li>'
-					+ ' <li> ' 
-					+ ' <a href="#"> Add profile </a></li>'
+					+ ' <li id="nav-li-' + iface["pk"] + '" /> ' 
+					+ ' <li><a href="{% url r66-interfaces-new %}"> Add profile </a></li>'
 
 				);
 
@@ -97,10 +248,7 @@
 
   $( function() {
 
-	  Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
-
-		Dajaxice.r66.get_netiface_profile_settings(get_netiface_profile_js_callback, 
-			{'id':selected_profile});
+    Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
 
   });
 

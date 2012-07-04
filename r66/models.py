@@ -65,13 +65,13 @@ class NetSettings(models.Model):
     ### external & internal mode attributes
 
     # staticip configuration
-    ip = models.IPAddressField()
-    netmask = models.IPAddressField()
-    dns1 = models.IPAddressField()
-    dns2 = models.IPAddressField()
-    gateway = models.IPAddressField()
-    ntp1 = models.IPAddressField()
-    ntp2 = models.IPAddressField()
+    ip = models.IPAddressField(blank=True, null=True)
+    netmask = models.IPAddressField(blank=True, null=True)
+    dns1 = models.IPAddressField(blank=True, null=True)
+    dns2 = models.IPAddressField(blank=True, null=True)
+    gateway = models.IPAddressField(blank=True, null=True)
+    ntp1 = models.IPAddressField(blank=True, null=True)
+    ntp2 = models.IPAddressField(blank=True, null=True)
 
 
 class WirelessSettings(models.Model):
@@ -146,10 +146,6 @@ class WirelessSettings(models.Model):
 
 
 
-    def __unicode__(self):
-        return self.name
-
-
 
 class DhcpdSettings(models.Model):
     class Meta:
@@ -193,9 +189,6 @@ class DhcpdSettings(models.Model):
     max_lease_time = models.IntegerField(
             _("Max lease time (max-lease-time)"),
             blank=True, null=True,)
-
-    def __unicode__(self):
-        return self.name
 
 
 class DhcpdSettingsHost(models.Model):
@@ -255,10 +248,6 @@ class NetBridgeProfile(models.Model):
     # ntpd_settings = models.ForeignKey(NtpdSettings,
     #         blank=True, null=True, on_delete=models.SET_NULL)
 
-    def __unicode__(self):
-        return self.name
-
-
 
 class NetIface(models.Model):
     class Meta:
@@ -287,7 +276,8 @@ class NetIfaceProfile(models.Model):
 
     description = models.TextField(max_length=150)
 
-    netiface = models.ForeignKey(NetIface)
+    netiface = models.ForeignKey(NetIface,
+            blank=False, null=False )
 
     netiface_type = models.CharField(_("Network interface type"),
             choices=NETIFACE_TYPE_CHOICES,
@@ -308,10 +298,6 @@ class NetIfaceProfile(models.Model):
 
     # ntpd_settings = models.ForeignKey(NtpdSettings,
     #         blank=True, null=True, on_delete=models.SET_NULL)
-
-
-    def __unicode__(self):
-        return self.name
 
 
 

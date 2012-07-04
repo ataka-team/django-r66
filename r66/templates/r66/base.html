@@ -114,43 +114,10 @@
         {% endblock sidebar %}
 
 
-        <!-- error-messages -->
-        {% block error-messages %}
-        {% if error_messages %}
-        <div class="alert alert-error">
-          <button class="close" data-dismiss="alert">×</button>
-          <li>
-            <ul>
-              {% for error_message in error_messages %}
-                <li>{{ error_message }}</li>
-              {% endfor %}
-            </ul>
-          </li>
-        </div>
-        {% endif %}
-        {% endblock %}
-        <!-- /error-messages -->
-
-        <!-- messages -->
-        {% block messages %}
-        {% if messages %}
-        <div class="alert alert-info">
-          <button class="close" data-dismiss="alert">×</button>
-          <li>
-            <ul>
-              {% for message in messages %}
-                <li>{{ message }}</li>
-              {% endfor %}
-            </ul>
-          </li>
-        </div>
-        {% endif %}
-        {% endblock %}
-        <!-- /messages -->
 
 
         <!-- content -->
-        <div class="span9">
+				<div class="span9">
 
           <div class="hero-unit">
             {% block content_title %}
@@ -159,7 +126,45 @@
             {% block content_description %}
               {% if content_description %}<p>{{ content_description }}</p>{% endif %}
             {% endblock %}
+					</div>
+
+          <!-- error-messages -->
+          {% block error-messages %}
+          {% if error_messages %}
+          <div id="alert-error" class="alert alert-error">
+            <button class="close" data-dismiss="alert">×</button>
+              <ul>
+                {% for error_message in error_messages %}
+                  <li>{{ error_message }}</li>
+                {% endfor %}
+              </ul>
           </div>
+			  	{% else %}
+				  <div id="alert-error"> </div>
+          {% endif %}
+          {% endblock %}
+          <!-- /error-messages -->
+
+          <!-- messages -->
+          {% block messages %}
+          {% if messages %}
+          <div id="alert-info" class="alert alert-info">
+            <button class="close" data-dismiss="alert">×</button>
+            <li>
+              <ul>
+                {% for message in messages %}
+                  <li>{{ message }}</li>
+                {% endfor %}
+              </ul>
+            </li>
+  				</div>
+	  			{% else %}
+		  		<div id="alert-info">  </div/>
+          {% endif %}
+          {% endblock %}
+          <!-- /messages -->
+
+
 
           {% block content %}
             {% block object-tools %}

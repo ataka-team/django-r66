@@ -48,3 +48,14 @@ def _create_context(request):
     return context_dict
 
 
+def serialized_array_to_dict (a):
+    res = {}
+    for i in a:
+      # if res.has_key(i["name"]):
+      #   res[i["name"]].append(i["value"])
+      # else:
+      #   res[i["name"]] = [i["value"]]
+      res[i["name"]] = i["value"]
+    return res
+
+
