@@ -1,0 +1,111 @@
+{% extends "r66/base.html" %}
+{% load i18n %}
+{% load r66_extras %}
+{% load sekizai_tags %}
+
+
+        {% block sidebar %}
+			  <div class="span3">
+					<div id="div-sidebar-nav" class="well sidebar-nav" > 
+						<ul class="nav nav-list">
+						</ul>
+					</div><!--/.well -->
+        </div><!--/span-->
+        {% endblock sidebar %}
+
+
+          {% block content %}
+            {% block object-tools %}
+            {% endblock %}
+						{{ content }}
+
+    <div id="div-ifaces">
+      <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+      <th> Name </th>
+      <th> Status </th>
+      <th> Type </th>
+      <th> Action </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      <td>…</td>
+      </tr>
+      </tbody>
+      </table>
+    </div>
+
+
+{% addtoblock "js" %}
+<script type="text/javascript">
+  var selected_interface_profile = undefined;
+
+	function get_netiface_profiles_js_callback(data){
+
+		var items = new Array();
+
+		$.each(data, function(key_profile, profile) {
+      if ( items[profile["fields"]["netiface"]] == undefined )
+			{
+			  items[profile["fields"]["netiface"]] = [];
+			}
+      items[profile["fields"]["netiface"]].push(
+					'<li>' 
+					+ profile["pk"] 
+					+ '</li>'
+      );
+    });
+		
+		for(var key in items){
+			var li_items = items[key].join('\n');
+		  $("#nav-li-" + key).replaceWith(li_items);
+		}
+
+  }
+
+
+	function get_netifaces_js_callback(data){
+
+    var nav_header_items = [];
+
+		$.each(data, function(key_iface, iface) {
+
+      nav_header_items.push(
+					'<li id="nav-header-' + iface["pk"] + '" class="nav-header">' 
+					+ iface["fields"]["name"] + '</li>' 
+					+ ' <li id="nav-li-' + iface["pk"] + '"> ' 
+					+ ' <a href="#"> Add profile </a></li>'
+				);
+
+    });
+
+		var ul = $('<ul class="nav nav-list"> ' + nav_header_items.join('\n') + ' </ul>');
+
+		$("#div-sidebar-nav").replaceWith('<div id="div-sidebar-nav" class="well sidebar-nav" >');
+    ul.appendTo('#div-sidebar-nav');
+
+    Dajaxice.r66.get_netiface_profiles(get_netiface_profiles_js_callback);
+
+  }
+
+
+  $( function() {
+
+    Dajaxice.r66.get_netifaces(get_netifaces_js_callback)
+
+  });
+
+</script>
+{% endaddtoblock %}
+
+
+
+
+          {% endblock %}
+
+

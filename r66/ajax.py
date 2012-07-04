@@ -4,6 +4,7 @@ import netutils
 import models
 
 from django.core import serializers
+
 def search_devices(request):
     ifaces = netutils.get_interfaces_names()
     wifi_ifaces = netutils.get_wifi_interfaces_names()
@@ -40,6 +41,19 @@ def get_netifaces(request):
     return data
 
 dajaxice_functions.register(get_netifaces)
+
+def get_netiface_profiles(request):
+    iface_profiles = models.NetIfaceProfile.objects.all()
+
+    # res = {}
+
+    data = serializers.serialize('json', iface_profiles,
+        fields=('name','description', 'enabled', 'netiface', 'netiface_type'))
+
+    return data
+
+dajaxice_functions.register(get_netiface_profiles)
+
 
 def add_netiface(request,name):
     _objs = models.NetIface.objects.filter(name=name)

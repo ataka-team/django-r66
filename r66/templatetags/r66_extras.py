@@ -7,6 +7,8 @@ from django.conf import settings
 menu = {}
 menu["home"] = ["interfaces", "bridges", "search", "ppp3g"]
 menu["about"] = []
+menu["bridges"] = ["bridge_profiles"]
+menu["interfaces"] = ["interface_profiles"]
 menu["contact"] = []
 
 register = Library()
@@ -36,8 +38,16 @@ def render_nav_menu(page_id):
                 <li ''' \
                 + _aux_active_class(page_id,"home") \
                 + ''' > <a href="''' + reverse('r66-home',args=["interfaces"]) \
-                + '''">Home</a></li>
-                <li ''' \
+                + '''">Home</a></li> ''' \
+                + '''<li ''' \
+                + _aux_active_class(page_id,"interfaces") \
+                + ''' > <a href="''' + reverse('r66-interfaces',args=None) \
+                + '''">Interfaces</a></li> ''' \
+                + '''<li ''' \
+                + _aux_active_class(page_id,"bridges") \
+                + ''' > <a href="''' + reverse('r66-bridges',args=None) \
+                + '''">Bridges</a></li> ''' \
+                + ''' <li ''' \
                 + _aux_active_class(page_id,"about") \
                 + ''' ><a href="#about">About</a></li>
                 <li ''' \

@@ -58,4 +58,32 @@ def home(request, page_id):
     return render_to_response('r66/anyother.html', context)
 
 
+def bridges(request, page_id=None):
+    if not page_id:
+        page_id = "bridge_profiles"
+
+    context_dict = helpers._create_context(request)
+    context_dict["page_id"] = page_id
+    context = RequestContext(request, context_dict)
+
+    context_dict["title"] = "Bridges"
+    context_dict["content_description"] = "Network bridges and network " + \
+"bridges profiles managed by R66"
+
+    return render_to_response('r66/bridge_profile.html', context)
+
+def interfaces(request, page_id=None):
+    if not page_id:
+        page_id = "interface_profiles"
+
+    context_dict = helpers._create_context(request)
+    context_dict["page_id"] = page_id
+    context = RequestContext(request, context_dict)
+
+    context_dict["title"] = "Interfaces"
+    context_dict["content_description"] = "Network interfaces and network " + \
+"interfaces profiles managed by R66"
+
+    return render_to_response('r66/interface_profile.html', context)
+
 
