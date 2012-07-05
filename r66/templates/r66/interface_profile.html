@@ -22,7 +22,7 @@
 		<form action="" method="post" id="profile_form"
 			accept-charset="utf-8">{% csrf_token %}
 
-	    <table class="table table-striped table-bordered table-condensed">
+	    <table id="netiface_profile_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">General settings</th>
@@ -36,8 +36,8 @@
         {{ netiface_profile_form.as_table }}
       </table>
 
-		
-      <table class="table table-striped table-bordered table-condensed">
+      <div id="all_forms">	
+      <table id="netiface_profile_extended_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">Bridge settings</th>
@@ -51,7 +51,7 @@
         {{ netiface_profile_extended_form.as_table }}
       </table>
 
-      <table class="table table-striped table-bordered table-condensed">
+      <table id="net_settings_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">Network settings</th>
@@ -65,7 +65,7 @@
         {{ net_settings_form.as_table }}
 			</table>
 
-      <table class="table table-striped table-bordered table-condensed">
+      <table id="net_settings_extended_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">More Network settings</th>
@@ -79,8 +79,8 @@
         {{ net_settings_extended_form.as_table }}
       </table>
 
-
-      <table class="table table-striped table-bordered table-condensed">
+     
+      <table id="wifi_settings_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">Wifi settings</th>
@@ -94,7 +94,8 @@
         {{ wifi_settings_form.as_table }}
 			</table>
 
-      <table class="table table-striped table-bordered table-condensed">
+      <div id="wifi_extended_forms">
+      <table id="wifi_settings_none_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">Clear Wifi settings</th>
@@ -108,7 +109,7 @@
         {{ wifi_settings_none_form.as_table }}
 			</table>
 
-      <table class="table table-striped table-bordered table-condensed">
+      <table id="wifi_settings_wep_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">WEP Wifi settings</th>
@@ -123,7 +124,7 @@
       </table>
 
 
-      <table class="table table-striped table-bordered table-condensed">
+      <table id="wifi_settings_wpa_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">WPA Wifi settings</th>
@@ -136,9 +137,10 @@
 
         {{ wifi_settings_wpa_form.as_table }}
       </table>
+		  </div> <!-- id="wifi_extended_forms" -->
 
 
-      <table class="table table-striped table-bordered table-condensed">
+      <table id="dhcpd_settings_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">DHCP daemon settings</th>
@@ -152,7 +154,7 @@
         {{ dhcpd_settings_form.as_table }}
 			</table>
 
-      <table class="table table-striped table-bordered table-condensed">
+      <table id="dhcpd_settings_extended_form" class="table table-striped table-bordered table-condensed">
       <thead>
           <tr>
             <th colspan="2">More DHCP daemon settings</th>
@@ -165,6 +167,8 @@
 
         {{ dhcpd_settings_extended_form.as_table }}
 			</table>
+
+  		</div> <!-- id="all_forms" -->
 
       {% if selected_profile %}
         <div style="display:none">
@@ -305,10 +309,127 @@
 
     Dajaxice.r66.get_netiface_profiles(get_netiface_profiles_js_callback);
 
-  }
+	}
+
+function toggle_all_forms() {
+				if ($('#id_profile-enabled').is(':checked'))
+				{
+					$("#all_forms").show(1000);
+				}
+				else{
+					$("#all_forms").hide(100);
+				}
+	}
+
+
+  function toggle_wifi_settings_forms() {
+				if ($('#id_wifinone-wifi option:selected').val() == 'NONE')
+				{
+					$("#wifi_settings_wep_form").hide(200);
+					$("#wifi_settings_wpa_form").hide(200);
+				}
+				if ($('#id_wifinone-wifi option:selected').val() == 'WEP')
+				{
+					$("#wifi_settings_wep_form").show(1000);
+					$("#wifi_settings_wpa_form").hide(200);
+				}
+				if ($('#id_wifinone-wifi option:selected').val() == 'WPA')
+				{
+					$("#wifi_settings_wep_form").hide(200);
+					$("#wifi_settings_wpa_form").show(1000);
+				}
+	}
+
+  function toggle_netiface_profile_extended_form() {
+        $("#id_net-dhcp").show();
+
+				if ($('#id_profile-netiface_type option:selected').val() == 'bridge')
+				{
+					$("#netiface_profile_extended_form").show(1000);
+					$("#net_settings_form").hide(200);
+					$("#net_settings_extended_form").hide(200);
+					$("#dhcpd_settings_form").hide(200);
+					$("#dhcpd_settings_extended_form").hide(200);
+				}
+				if ($('#id_profile-netiface_type option:selected').val() == 'external')
+				{
+					$("#netiface_profile_extended_form").hide(200);
+					$("#net_settings_form").show(1000);
+					toggle_net_settings_extended_form();
+					$("#dhcpd_settings_form").hide(200);
+					$("#dhcpd_settings_extended_form").hide(200);
+				}
+				if ($('#id_profile-netiface_type option:selected').val() == 'internal')
+				{
+					$("#id_net-dhcp").attr('checked', false);
+					$("#id_net-dhcp").hide();
+
+					$("#netiface_profile_extended_form").hide(200);
+					$("#net_settings_form").show(1000);
+					toggle_net_settings_extended_form();
+					$("#dhcpd_settings_form").show(1000);
+					toggle_dhcpd_settings_extended_form();
+				}
+				if ($('#id_profile-netiface_type option:selected').val() == 'unused')
+				{
+					$("#netiface_profile_extended_form").hide(200);
+					$("#net_settings_form").hide(200);
+					$("#net_settings_extended_form").hide(200);
+					$("#dhcpd_settings_form").hide(200);
+					$("#dhcpd_settings_extended_form").hide(200);
+				}
+
+
+	}
+
+	function toggle_net_settings_extended_form() {
+				if ($('#id_net-dhcp').is(':checked'))
+				{
+					$("#net_settings_extended_form").hide(200);
+				}
+				else{
+					$("#net_settings_extended_form").show(1000);
+				}
+	}
+
+	function toggle_wifi_extended_forms() {
+				if ($('#id_wifi-enabled').is(':checked'))
+				{
+					$("#wifi_extended_forms").show(1000);
+				}
+				else{
+					$("#wifi_extended_forms").hide(200);
+				}
+	}
+
+  function toggle_dhcpd_settings_extended_form() {
+				if ($('#id_dhcpd-enabled').is(':checked'))
+				{
+					$("#dhcpd_settings_extended_form").show(1000);
+				}
+				else{
+					$("#dhcpd_settings_extended_form").hide(200);
+				}
+	}
+  
+  $('#id_wifinone-wifi').change(toggle_wifi_settings_forms);
+  $('#id_dhcpd-enabled').change(toggle_dhcpd_settings_extended_form);
+  $('#id_wifi-enabled').change(toggle_wifi_extended_forms);
+  $('#id_net-dhcp').change(toggle_net_settings_extended_form);
+  $('#id_profile-netiface_type').change(toggle_netiface_profile_extended_form);
+  $('#id_profile-enabled').change(toggle_all_forms);
 
 
   $( function() {
+    toggle_all_forms();
+
+    toggle_dhcpd_settings_extended_form();
+    toggle_net_settings_extended_form();
+    toggle_wifi_extended_forms();
+    toggle_wifi_settings_forms();
+		toggle_net_settings_extended_form();
+
+    toggle_netiface_profile_extended_form();
 
     Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
 
