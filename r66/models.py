@@ -52,6 +52,34 @@ class Error(Exception):
         return str(self._object) + " - " + repr(self.value)
 
 
+class Status(models.Model):
+    class Meta:
+        verbose_name = 'Network Configuration state'
+
+    changed = models.BooleanField(default=False)
+
+    def mark_as_changed():
+        self.changed = True
+        self.save()
+
+    def unmark_as_changed():
+        self.changed = False
+        self.save()
+
+    def to_dict():
+        res = {}
+        res["changed"] = self.changed
+        return res
+
+def get_status():
+    status = Status.objects.all()
+    if len(status) == 0:
+        status = Status()
+        status.save()
+    else:
+        status = status[0]
+    return status
+
 class NetSettings(models.Model):
     class Meta:
         verbose_name = 'Network interface settings'
@@ -79,6 +107,10 @@ class NetSettings(models.Model):
     ntp1 = models.IPAddressField(blank=True, null=True)
     ntp2 = models.IPAddressField(blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      super(NetSettings, self).save(*args, **kwargs)
 
 class WirelessSettings(models.Model):
     class Meta:
@@ -153,6 +185,10 @@ class WirelessSettings(models.Model):
     wep_defaultkey = models.IntegerField(
             blank=True, null=True,)
 
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      super(WirelessSettings, self).save(*args, **kwargs)
 
 
 
@@ -199,6 +235,11 @@ class DhcpdSettings(models.Model):
             _("Max lease time (max-lease-time)"),
             blank=True, null=True,)
 
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      super(DhcpdSettings, self).save(*args, **kwargs)
+
 
 class DhcpdSettingsHost(models.Model):
     class Meta:
@@ -210,6 +251,11 @@ class DhcpdSettingsHost(models.Model):
             max_length=100,)
 
     ip = models.IPAddressField()
+
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      super(DhcpdSettingsHost, self).save(*args, **kwargs)
 
 
 # class NtpdSettings(models.Model):
@@ -236,6 +282,10 @@ class NetBridge(models.Model):
     def __unicode__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      super(NetBridge, self).save(*args, **kwargs)
 
 class NetBridgeProfile(models.Model):
     class Meta:
@@ -256,6 +306,13 @@ class NetBridgeProfile(models.Model):
 
     # ntpd_settings = models.ForeignKey(NtpdSettings,
     #         blank=True, null=True, on_delete=models.SET_NULL)
+
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      super(NetBridgeProfile, self).save(*args, **kwargs)
+
+
 
 
 class NetIface(models.Model):
@@ -278,6 +335,7 @@ class NetIface(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
 
       self.wifi_device = netutils.is_wifi_interface(self.name)
 
@@ -316,6 +374,8 @@ class NetIfaceProfile(models.Model):
     #         blank=True, null=True, on_delete=models.SET_NULL)
 
     def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
       if self.netiface and  self.enabled:
           # Search all NetIfaceProfile related with netiface
           # and demark as enabled

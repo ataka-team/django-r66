@@ -78,7 +78,6 @@ register.simple_tag(render_nav_menu)
 def render_home_menu(page_id):
 
     _menu = '''
-        <div class="span3">
           <div class="well sidebar-nav">
             <ul class="nav nav-list">
               <li class="nav-header">Devices</li>
@@ -100,8 +99,7 @@ def render_home_menu(page_id):
                 + ''' > <a href="''' + reverse('r66-home',args=["search"]) \
                 + '''">Search network devices</a></li>
             </ul>
-          </div><!--/.well -->
-        </div><!--/span-->'''
+          </div><!--/.well -->'''
 
     return _menu
 

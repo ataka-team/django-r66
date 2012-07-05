@@ -10,6 +10,14 @@ from django.core import serializers
 from dajaxice.decorators import dajaxice_register
 
 @dajaxice_register
+def configuration_changed(request):
+    status = models.get_status()
+
+    res = status.to_dict()
+    return simplejson.dumps(res)
+
+
+@dajaxice_register
 def search_devices(request):
     ifaces = netutils.get_interfaces_names()
     wifi_ifaces = netutils.get_wifi_interfaces_names()
