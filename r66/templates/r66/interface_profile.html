@@ -225,7 +225,7 @@
     var nav_header_items = [];
 
 		$.each(data, function(key_iface, iface) {
-
+      if ( iface["fields"]["enabled"]) {
       nav_header_items.push(
 					'<li id="nav-header-' + iface["pk"] + '" class="nav-header">' 
 					+ iface["fields"]["name"] + '</li>' 
@@ -233,6 +233,7 @@
 					+ ' <li><a href="{% url r66-interfaces-new %}"> Add profile </a></li>'
 
 				);
+			}
 
     });
 
