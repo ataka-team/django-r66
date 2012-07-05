@@ -39,7 +39,7 @@ def get_netifaces(request):
     ifaces = models.NetIface.objects.all()
 
     data = serializers.serialize('json', ifaces,
-        fields=('name','description', 'enabled'))
+        fields=('name','description', 'enabled', 'wifi_device'))
 
     return data
 

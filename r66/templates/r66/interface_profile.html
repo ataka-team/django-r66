@@ -198,6 +198,7 @@
 
 {% addtoblock "js" %}
 <script type="text/javascript">
+  var netifaces = undefined;
 
   {% if selected_profile %}
     var selected_profile = {{ selected_profile }};
@@ -267,11 +268,17 @@
 			{
 			  active = 'class="active"';
 			}
+      
+      var enabled = "";
+      if ( profile["fields"]["enabled"] )
+			{
+			  enabled = " - enabled";
+			}
 
       items[profile["fields"]["netiface"]].push(
 				'<li ' + active + '>'
   				+ '<a href="{% url r66-interfaces  %}' + profile["pk"] + '">'
-					+ profile["pk"] 
+					+ profile["pk"] + enabled  
 					+ '</a>'
 					+ '</li>'
       );
@@ -288,6 +295,7 @@
 	function get_netifaces_js_callback(data){
 
     var nav_header_items = [];
+    netifaces = data;
 
 		$.each(data, function(key_iface, iface) {
       if ( iface["fields"]["enabled"]) {
@@ -307,7 +315,19 @@
 		$("#div-sidebar-nav").replaceWith('<div id="div-sidebar-nav" class="well sidebar-nav" >');
     ul.appendTo('#div-sidebar-nav');
 
-    Dajaxice.r66.get_netiface_profiles(get_netiface_profiles_js_callback);
+		Dajaxice.r66.get_netiface_profiles(get_netiface_profiles_js_callback);
+
+    toggle_all_forms();
+
+    toggle_dhcpd_settings_extended_form();
+    toggle_net_settings_extended_form();
+    toggle_wifi_extended_forms();
+    toggle_wifi_settings_forms();
+    toggle_wifi_settings_all_forms();
+    toggle_net_settings_extended_form();
+
+    toggle_netiface_profile_extended_form();
+
 
 	}
 
@@ -319,6 +339,24 @@ function toggle_all_forms() {
 				else{
 					$("#all_forms").hide(100);
 				}
+	}
+
+  function toggle_wifi_settings_all_forms() {
+		    var netiface_id = $('#id_profile-netiface option:selected').val();
+
+				$.each(netifaces, function(key_iface, iface) {
+						if ( iface["pk"] == netiface_id) {
+						    if ( iface["fields"]["wifi_device"] ) {
+					         $("#wifi_settings_form").show(1000);
+                   toggle_wifi_extended_forms();
+								}
+								else{
+								   $("#wifi_settings_form").hide(200);
+                   $("#wifi_extended_forms").hide(200);
+								}
+				    }
+						});
+
 	}
 
 
@@ -412,6 +450,7 @@ function toggle_all_forms() {
 				}
 	}
   
+  $('#id_profile-netiface').change(toggle_wifi_settings_all_forms);
   $('#id_wifinone-wifi').change(toggle_wifi_settings_forms);
   $('#id_dhcpd-enabled').change(toggle_dhcpd_settings_extended_form);
   $('#id_wifi-enabled').change(toggle_wifi_extended_forms);
@@ -421,17 +460,8 @@ function toggle_all_forms() {
 
 
   $( function() {
-    toggle_all_forms();
-
-    toggle_dhcpd_settings_extended_form();
-    toggle_net_settings_extended_form();
-    toggle_wifi_extended_forms();
-    toggle_wifi_settings_forms();
-		toggle_net_settings_extended_form();
-
-    toggle_netiface_profile_extended_form();
-
     Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
+
 
   });
 

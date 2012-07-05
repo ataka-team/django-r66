@@ -264,6 +264,8 @@ class NetIface(models.Model):
 
     enabled=models.BooleanField(default=False)
 
+    wifi_device=models.BooleanField(default=False)
+
     netiface_type = models.CharField(_("Network interface type"),
             choices=NETIFACE_TYPE_CHOICES,
                         default='unused', max_length=100)
@@ -275,6 +277,11 @@ class NetIface(models.Model):
     def __unicode__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+
+      self.wifi_device = netutils.is_wifi_interface(self.name)
+
+      super(NetIface, self).save(*args, **kwargs)
 
 class NetIfaceProfile(models.Model):
     class Meta:
@@ -307,6 +314,22 @@ class NetIfaceProfile(models.Model):
 
     # ntpd_settings = models.ForeignKey(NtpdSettings,
     #         blank=True, null=True, on_delete=models.SET_NULL)
+
+    def save(self, *args, **kwargs):
+      if self.netiface and  self.enabled:
+          # Search all NetIfaceProfile related with netiface
+          # and demark as enabled
+          related_netiface_profiles = \
+NetIfaceProfile.objects.filter(netiface=self.netiface)
+          
+          for r in related_netiface_profiles:
+              if r.enabled:
+                  r.enabled = False
+                  r.save()
+
+          self.enabled = True
+
+      super(NetIfaceProfile, self).save(*args, **kwargs)
 
 
 
