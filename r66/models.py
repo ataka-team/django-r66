@@ -58,15 +58,15 @@ class Status(models.Model):
 
     changed = models.BooleanField(default=False)
 
-    def mark_as_changed():
+    def mark_as_changed(self):
         self.changed = True
         self.save()
 
-    def unmark_as_changed():
+    def unmark_as_changed(self):
         self.changed = False
         self.save()
 
-    def to_dict():
+    def to_dict(self):
         res = {}
         res["changed"] = self.changed
         return res

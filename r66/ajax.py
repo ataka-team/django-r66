@@ -16,6 +16,18 @@ def configuration_changed(request):
     res = status.to_dict()
     return simplejson.dumps(res)
 
+@dajaxice_register
+def apply_changes(request):
+    status = models.get_status()
+
+    status.unmark_as_changed()
+
+    # TODO
+
+    res = {"status":["Fallo 1"]}
+
+    return simplejson.dumps(res)
+
 
 @dajaxice_register
 def search_devices(request):

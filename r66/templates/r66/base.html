@@ -115,13 +115,76 @@
         <button class="btn btn-large btn-inverse"> <i class="icon-refresh"></i> Reboot system</button>
         </p> 
         <p>
-        <button class="btn btn-large btn-danger"> <i class="icon-ok"></i> Apply changes</button>
+					<button id="btn-apply-changes" class="btn btn-large btn-danger"
+					    onclick="apply_changes();"> 
+						<i class="icon-ok"></i> Apply changes</button>
         </p>
 
         </div><!--/span-->
 
 
+{% addtoblock "js" %}
+<script type="text/javascript">
+  function configuration_changed_js_callback(data){
+		if ( data["changed"])
+		{
+		  $("#btn-apply-changes").show()
+		}
+		else
+		{
+		  $("#btn-apply-changes").hide()
+		}
 
+	}
+
+  function apply_changes_callback(data){
+
+     if (data.status.length > 0)
+     {
+       error = '<div id="alert-error" class="alert alert-error">'
+        + '  <button class="close" data-dismiss="alert">×</button>'
+				+ '    <ul>';
+
+				for (message in data.status){
+          error = error + "<li>" + data.status[message] + "</li>";
+				}
+
+      error = error + '    </ul>'
+        + '</div>';
+		  $("#alert-error").replaceWith(error);
+		 }
+		 else 
+		 {
+		   info = '<div id="alert-info" class="alert alert-info">'
+        + '  <button class="close" data-dismiss="alert">×</button>'
+        + '    <ul>'
+        + '      <li> Correctly updated </li>'
+        + '    </ul>'
+        + '</div>';
+
+			 $("#alert-info").replaceWith(info);
+
+			 window.location.href = "{% url r66-success %}";
+
+    }
+
+  }
+
+
+  function apply_changes(){
+    Dajaxice.r66.apply_changes(apply_changes_callback);
+    return false;
+  }
+
+
+  $( function() {
+    Dajaxice.r66.configuration_changed(configuration_changed_js_callback);
+
+
+  });
+
+</script>
+{% endaddtoblock %}
 
         <!-- content -->
 				<div class="span9">
