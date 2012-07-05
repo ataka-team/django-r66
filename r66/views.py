@@ -103,48 +103,64 @@ def interfaces(request, profile_id=None):
     except Exception:
       p = None
 
-    if p:
-      context_dict["net_settings_form"] = \
+    net_settings = None
+    wifi_settings = None
+    dhcpd_settings = None
+    try:
+        net_settings = p.net_settings
+    except Exception:
+        net_settings = None
+    try:
+        wifi_settings = p.wifi_settings
+    except Exception:
+        wifi_settings = None
+    try:
+        dhcpd_settings = p.dhcpd_settings
+    except Exception:
+        dhcpd_settings = None
+
+
+    context_dict["net_settings_form"] = \
             r66.forms.NetSettingsForm(instance = \
-              p.net_settings, prefix="net"
+              net_settings, prefix="net"
             )
-      context_dict["net_settings_extended_form"] = \
+    context_dict["net_settings_extended_form"] = \
             r66.forms.NetSettingsExtendedForm(instance = \
-              p.net_settings, prefix="netextended"
+              net_settings, prefix="netextended"
             )
-      context_dict["wifi_settings_form"] = \
+    context_dict["wifi_settings_form"] = \
             r66.forms.WirelessSettingsForm (instance = \
-              p.wifi_settings, prefix="wifi"
+              wifi_settings, prefix="wifi"
             )
-      context_dict["dhcpd_settings_form"] = \
+    context_dict["wifi_settings_none_form"] = \
+            r66.forms.WirelessSettingsNoneForm (instance = \
+              wifi_settings, prefix="wifinone"
+            )
+    context_dict["wifi_settings_wep_form"] = \
+            r66.forms.WirelessSettingsWepForm (instance = \
+              wifi_settings, prefix="wifiwep"
+            )
+    context_dict["wifi_settings_wpa_form"] = \
+            r66.forms.WirelessSettingsWpaForm (instance = \
+              wifi_settings, prefix="wifiwpa"
+            )
+    context_dict["dhcpd_settings_form"] = \
             r66.forms.DhcpdSettingsForm (instance = \
-              p.dhcpd_settings, prefix="dhcpd"
+              dhcpd_settings, prefix="dhcpd"
             )
-      context_dict["netiface_profile_form"] = \
+    context_dict["dhcpd_settings_extended_form"] = \
+            r66.forms.DhcpdSettingsExtendedForm (instance = \
+              dhcpd_settings, prefix="dhcpdextended"
+            )
+    context_dict["netiface_profile_form"] = \
             r66.forms.NetIfaceProfileForm (instance = \
               p, prefix="profile"
             )
-    else:
-      context_dict["net_settings_form"] = \
-            r66.forms.NetSettingsForm(instance = \
-              None, prefix="net"
+    context_dict["netiface_profile_extended_form"] = \
+            r66.forms.NetIfaceProfileExtendedForm (instance = \
+              p, prefix="profileextended"
             )
-      context_dict["net_settings_extended_form"] = \
-            r66.forms.NetSettingsExtendedForm(instance = \
-              None, prefix="netextended"
-            )
-      context_dict["wifi_settings_form"] = \
-            r66.forms.WirelessSettingsForm (instance = \
-              None, prefix="wifi"
-            )
-      context_dict["dhcpd_settings_form"] = \
-            r66.forms.DhcpdSettingsForm (instance = \
-              None, prefix="dhcpd"
-            )
-      context_dict["netiface_profile_form"] = \
-            r66.forms.NetIfaceProfileForm (instance = \
-              None, prefix="profile"
-            )
+
 
 
     return render_to_response('r66/interface_profile.html', context)

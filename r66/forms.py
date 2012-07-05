@@ -16,10 +16,55 @@ class NetSettingsExtendedForm(django.forms.ModelForm):
 class WirelessSettingsForm(django.forms.ModelForm):
     class Meta:
         model = models.WirelessSettings
+        fields = ("enabled",)
+
+class WirelessSettingsNoneForm(django.forms.ModelForm):
+    class Meta:
+        model = models.WirelessSettings
+        fields = ("ssid",
+                "wifi"
+                )
+
+class WirelessSettingsWpaForm(django.forms.ModelForm):
+    class Meta:
+        model = models.WirelessSettings
+        fields = ("wpa_scan_ssid",
+                "wpa_proto",
+                "wpa_key_mgmt",
+                "wpa_psk",
+                "wpa_eap",
+                "wpa_pairwise",
+                "wpa_ca_cert",
+                "wpa_private_key",
+                "wpa_private_key_passwd",
+                "wpa_identity",
+                "wpa_password",
+                "wpa_phase2",
+                )
+
+class WirelessSettingsWepForm(django.forms.ModelForm):
+    class Meta:
+        model = models.WirelessSettings
+        fields = (
+                "wep_channel",
+                "wep_keymode",
+                "wep_key1",
+                "wep_key2",
+                "wep_defaultkey",
+                )
 
 class DhcpdSettingsForm(django.forms.ModelForm):
     class Meta:
         model = models.DhcpdSettings
+        fields = ('enabled',
+                   )
+
+class DhcpdSettingsExtendedForm(django.forms.ModelForm):
+    class Meta:
+        model = models.DhcpdSettings
+        exclude = ('enabled',
+                   )
+
 
 class NetIfaceProfileForm(django.forms.ModelForm):
     class Meta:
@@ -27,6 +72,13 @@ class NetIfaceProfileForm(django.forms.ModelForm):
         exclude = ('net_settings',
                    'wifi_settings',
                    'dhcpd_settings',
+                   'bridge_profile',
+                   )
+
+class NetIfaceProfileExtendedForm(django.forms.ModelForm):
+    class Meta:
+        model = models.NetIfaceProfile
+        fields = ('bridge_profile',
                    )
 
 

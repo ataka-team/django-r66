@@ -10,6 +10,12 @@ NETIFACE_TYPE_CHOICES = [
     ('unused', _('Unused network')),
 ]
 
+WIFI_CHOICES = [
+    ('WPA', _('WPA')),
+    ('WEP', _('WEP')),
+    ('NONE', _('NONE')),
+]
+
 WPA_KEY_MGMT_CHOICES = [
     ('WPA-EAP', _('WPA-EAP')),
     ('WPA-PSK', _('WPA-PSK')),
@@ -84,6 +90,9 @@ class WirelessSettings(models.Model):
     ssid = models.CharField(max_length=30,
         blank=True, null=True)
 
+    wifi = models.CharField(max_length=30,
+        choices=WIFI_CHOICES,
+        default="NONE")
 
     # wpa
     wpa_scan_ssid = models.PositiveIntegerField(
@@ -103,17 +112,17 @@ class WirelessSettings(models.Model):
     wpa_pairwise = models.CharField(max_length=30,
         choices=WPA_PAIRWISE_CHOICES,
         blank=True, null=True)
-    wpa_ca_cert = models.CharField(max_length=1000,
+    wpa_ca_cert = models.TextField(max_length=1000,
         blank=True, null=True)
-    wpa_private_key  = models.CharField(max_length=1000,
+    wpa_private_key  = models.TextField(max_length=1000,
         blank=True, null=True)
-    wpa_private_key_passwd = models.CharField(max_length=1000,
+    wpa_private_key_passwd = models.TextField(max_length=1000,
         blank=True, null=True)
     wpa_identity = models.CharField(max_length=100,
         blank=True, null=True)
     wpa_password = models.CharField(max_length=100,
         blank=True, null=True)
-    wpa_phase2 = models.CharField(max_length=1000,
+    wpa_phase2 = models.TextField(max_length=1000,
         blank=True, null=True)
 
 

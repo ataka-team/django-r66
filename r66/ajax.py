@@ -90,7 +90,7 @@ def send_netiface_profile(request, form):
       profile_id = int(form_dict["selected_profile"])
       p = models.NetIfaceProfile.objects.get(pk=profile_id)
     except Exception, e:
-      p = None
+      p = models.NetIfaceProfile()
 
     net_settings = None
     wifi_settings = None
@@ -98,20 +98,23 @@ def send_netiface_profile(request, form):
     try:
         net_settings = p.net_settings
     except Exception:
-        net_settings = None
+        net_settings = models.NetSettings()
     try:
         wifi_settings = p.wifi_settings
     except Exception:
-        wifi_settings = None
+        wifi_settings = models.WirelessSettings()
     try:
         dhcpd_settings = p.dhcpd_settings
     except Exception:
-        dhcpd_settings = None
-
+        dhcpd_settings = models.DhcpdSettings()
 
 
     netiface_profile_form = forms.NetIfaceProfileForm(form, instance = \
               p, prefix="profile"
+        )
+
+    netiface_profile_extended_form = forms.NetIfaceProfileExtendedForm(form, instance = \
+              p, prefix="profileextended"
         )
 
     net_settings_form = forms.NetSettingsForm(form, instance = \
@@ -126,10 +129,23 @@ def send_netiface_profile(request, form):
     wireless_settings_form = forms.WirelessSettingsForm(form, instance = \
              wifi_settings, prefix="wifi"
         )
+    wireless_settings_none_form = forms.WirelessSettingsNoneForm(form, instance = \
+             wifi_settings, prefix="wifinone"
+        )
+    wireless_settings_wep_form = forms.WirelessSettingsWepForm(form, instance = \
+             wifi_settings, prefix="wifiwep"
+        )
+    wireless_settings_wpa_form = forms.WirelessSettingsWpaForm(form, instance = \
+             wifi_settings, prefix="wifiwpa"
+        )
 
     dhcpd_settings_form = forms.DhcpdSettingsForm(form, instance = \
               dhcpd_settings, prefix="dhcpd"
         )
+    dhcpd_settings_extended_form = forms.DhcpdSettingsExtendedForm(form, instance = \
+              dhcpd_settings, prefix="dhcpdextended"
+        )
+
 
 
     valid = True
@@ -137,6 +153,11 @@ def send_netiface_profile(request, form):
         valid = False
         e = netiface_profile_form.errors
         message = message + [e.as_ul()]
+    if not netiface_profile_extended_form.is_valid():
+        valid = False
+        e = netiface_profile_form.errors
+        message = message + [e.as_ul()]
+
     if not net_settings_form.is_valid():
         valid = False
         e = net_settings_form.errors
@@ -145,25 +166,61 @@ def send_netiface_profile(request, form):
         valid = False
         e = net_settings_extended_form.errors
         message = message + [e.as_ul()]
+
     if not wireless_settings_form.is_valid():
         valid = False
         e = wireless_settings_form.errors
         message = message + [e.as_ul()]
+    if not wireless_settings_none_form.is_valid():
+        valid = False
+        e = wireless_settings_none_form.errors
+        message = message + [e.as_ul()]
+    if not wireless_settings_wep_form.is_valid():
+        valid = False
+        e = wireless_settings_wep_form.errors
+        message = message + [e.as_ul()]
+    if not wireless_settings_wpa_form.is_valid():
+        valid = False
+        e = wireless_settings_wpa_form.errors
+        message = message + [e.as_ul()]
+
     if not dhcpd_settings_form.is_valid():
         valid = False
         e = dhcpd_settings_form.errors
         message = message + [e.as_ul()]
+    if not dhcpd_settings_extended_form.is_valid():
+        valid = False
+        e = dhcpd_settings_extended_form.errors
+        message = message + [e.as_ul()]
 
     if valid:
         net_settings = net_settings_form.save()
-        net_settings_extended_form.instance=net_settings
-        net_settings = net_settings_extended_form.save()
+        net_settings = forms.NetSettingsExtendedForm(form, instance = \
+             net_settings, prefix="netextended"
+        ).save()
 
         wifi_settings = wireless_settings_form.save()
+        wifi_settings = forms.WirelessSettingsNoneForm(form, instance = \
+             wifi_settings, prefix="wifinone"
+        ).save()
+        wifi_settings = forms.WirelessSettingsWepForm(form, instance = \
+             wifi_settings, prefix="wifiwep"
+        ).save()
+        wifi_settings = forms.WirelessSettingsWpaForm(form, instance = \
+             wifi_settings, prefix="wifiwpa"
+        ).save()
 
         dhcpd_settings = dhcpd_settings_form.save()
+        dhcpd_settings = forms.DhcpdSettingsExtendedForm(form, instance = \
+             dhcpd_settings, prefix="dhcpdextended"
+        ).save()
+
 
         netiface_profile = netiface_profile_form.save()
+        netiface_profile = forms.NetSettingsExtendedForm(form, instance = \
+             netiface_profile, prefix="profileextended"
+        ).save()
+
         netiface_profile.net_settings = net_settings
         netiface_profile.wifi_settings= wifi_settings
         netiface_profile.dhcpd_settings = dhcpd_settings
