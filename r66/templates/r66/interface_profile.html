@@ -128,24 +128,12 @@
     var selected_profile = undefined;
   {% endif %}
 
-  function send_netiface_profile_callback(data){
+  function generic_netiface_profile_callback(data){
 
-    // Updating netifaces profiles navside
-    Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
+     // Updating netifaces profiles navside
+     // Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
 
-    // TODO: Hace falta recojer los errores
-
-    // TODO: Hace falta recojer el success
-
-    /* if (data.status == 'Success!'){
-      $('#contact_errors').html(data.status);
-    }else{
-      for (message in data.status){
-        $('#contact_errors').append("<p><b>" + message + ":</b>" + data.status["message"] + "</p>");
-      }
-			} */
-
-		 if (data.status.length > 0)
+     if (data.status.length > 0)
      {
        error = '<div id="alert-error" class="alert alert-error">'
         + '  <button class="close" data-dismiss="alert">×</button>'
@@ -161,31 +149,31 @@
 		 }
 		 else 
 		 {
-		 	 info = '<div id="alert-info" class="alert alert-info">'
+		   info = '<div id="alert-info" class="alert alert-info">'
         + '  <button class="close" data-dismiss="alert">×</button>'
-				+ '    <ul>'
+        + '    <ul>'
         + '      <li> Correctly updated </li>'
         + '    </ul>'
         + '</div>';
 
-		  $("#alert-info").replaceWith(info);
-		 }
+			 $("#alert-info").replaceWith(info);
 
+			 window.location.href = "{% url r66-success %}";
 
+    }
 
-
-	}
+  }
 
   function delete_netiface_profile(){
-    Dajaxice.r66.delete_netiface_profile(delete_netiface_profile_callback,
-				{'pk':{{ selected_profile }}});
+    Dajaxice.r66.delete_netiface_profile(generic_netiface_profile_callback,
+        {'id':{{ selected_profile }}});
     return false;
   }
 
 
   function send_netiface_profile(){
     data = $('#profile_form').serializeArray();
-    Dajaxice.r66.send_netiface_profile(send_netiface_profile_callback, {'form':data});
+    Dajaxice.r66.send_netiface_profile(generic_netiface_profile_callback, {'form':data});
     return false;
   }
 

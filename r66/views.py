@@ -28,6 +28,16 @@ def index(request):
     return render_to_response('r66/index.html', context_dict)
 
 
+def success(request):
+
+    context_dict = RequestContext(request, {
+            'title': 'Successful operation',
+            'content_description': 'Operation performed so successful.',
+            })
+    context_dict["page_id"] = "success"
+    return render_to_response('r66/success.html', context_dict)
+
+
 def home(request, page_id):
     context_dict = helpers._create_context(request)
     context_dict["page_id"] = page_id

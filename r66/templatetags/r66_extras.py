@@ -6,7 +6,7 @@ from django.conf import settings
 import r66.models
 
 menu = {}
-menu["home"] = ["interfaces", "bridges", "search", "ppp3g"]
+menu["home"] = ["interfaces", "bridges", "search", "ppp3g", "success"]
 menu["about"] = []
 menu["bridges"] = ["bridge_profiles"]
 menu["interfaces"] = ["interface_profiles"]

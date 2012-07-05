@@ -55,105 +55,119 @@ def get_netiface_profiles(request):
 
 
 @dajaxice_register
-def send_netiface_profile(request, form):
+def delete_netiface_profile(request, id):
     message = []
-    print form
-    form_dict = helpers.serialized_array_to_dict(form)
-    form = form_dict
-
     p = None
     try:
-      profile_id = form_dict["selected_profile"]
-      p = r66.models.NetIfaceProfile.objects.get(pk=profile_id)
-    except Exception:
+      profile_id = int(id)
+      p = models.NetIfaceProfile.objects.get(pk=profile_id)
+    except Exception, e:
+      messages.append(str(e))
+
+
+    if p.net_settings:
+        p.net_settings.delete()
+
+    if p.wifi_settings:
+        p.wifi_settings.delete()
+
+    if p.dhcpd_settings:
+        p.dhcpd_settings.delete()
+
+    if p:
+        p.delete()
+
+    return simplejson.dumps({'status':message})
+
+
+@dajaxice_register
+def send_netiface_profile(request, form):
+    message = []
+    form_dict = helpers.serialized_array_to_dict(form)
+    form = form_dict
+    p = None
+    try:
+      profile_id = int(form_dict["selected_profile"])
+      p = models.NetIfaceProfile.objects.get(pk=profile_id)
+    except Exception, e:
       p = None
 
-    f0 = None
+    net_settings = None
+    wifi_settings = None
+    dhcpd_settings = None
     try:
-        f0 = forms.NetIfaceProfileForm(form, instance = \
+        net_settings = p.net_settings
+    except Exception:
+        net_settings = None
+    try:
+        wifi_settings = p.wifi_settings
+    except Exception:
+        wifi_settings = None
+    try:
+        dhcpd_settings = p.dhcpd_settings
+    except Exception:
+        dhcpd_settings = None
+
+
+
+    netiface_profile_form = forms.NetIfaceProfileForm(form, instance = \
               p, prefix="profile"
         )
-    except Exception:
-        f0 = forms.NetIfaceProfileForm(form,
-                    prefix="profile"
+
+    net_settings_form = forms.NetSettingsForm(form, instance = \
+              net_settings, prefix="net"
         )
 
-
-    f1 = None
-    try:
-        f1 = forms.NetSettingsForm(form, instance = \
-              p.net_settings, prefix="net"
-        )
-    except Exception:
-        f1 = forms.NetSettingsForm(form,
-                    prefix="net"
-        )
-
-
-    net_settings_extended_form = None
-    try:
-        net_settings_extended_form = \
+    net_settings_extended_form = \
                 forms.NetSettingsExtendedForm(form, instance = \
-              p.net_settings, prefix="netextended"
-        )
-    except Exception:
-        net_settings_extended_form = \
-                forms.NetSettingsExtendedForm(form,
-                    prefix="netextended"
+              net_settings, prefix="netextended"
         )
 
-
-    f2 = None
-    try:
-        f2 = forms.WirelessSettingsForm(form, instance = \
-              p.wifi_settings, prefix="wifi"
+    wireless_settings_form = forms.WirelessSettingsForm(form, instance = \
+             wifi_settings, prefix="wifi"
         )
 
-    except Exception:
-        f2 = forms.WirelessSettingsForm(form,
-                    prefix="wifi"
+    dhcpd_settings_form = forms.DhcpdSettingsForm(form, instance = \
+              dhcpd_settings, prefix="dhcpd"
         )
 
-
-    f3 = None
-    try:
-        f3 = forms.DhcpdSettingsForm(form, instance = \
-              p.dhcpd_settings, prefix="dhcpd"
-        )
-
-    except Exception:
-        f3 = forms.DhcpdSettingsForm(form,
-                    prefix="dhcpd"
-        )
 
     valid = True
-    if not f0.is_valid():
+    if not netiface_profile_form.is_valid():
         valid = False
-        e = f0.errors
+        e = netiface_profile_form.errors
         message = message + [e.as_ul()]
-    if not f1.is_valid():
+    if not net_settings_form.is_valid():
         valid = False
-        e = f1.errors
+        e = net_settings_form.errors
         message = message + [e.as_ul()]
     if not net_settings_extended_form.is_valid():
         valid = False
         e = net_settings_extended_form.errors
         message = message + [e.as_ul()]
-    if not f2.is_valid():
+    if not wireless_settings_form.is_valid():
         valid = False
-        e = f2.errors
+        e = wireless_settings_form.errors
         message = message + [e.as_ul()]
-    if not f3.is_valid():
+    if not dhcpd_settings_form.is_valid():
         valid = False
-        e = f3.errors
+        e = dhcpd_settings_form.errors
         message = message + [e.as_ul()]
 
     if valid:
-        f1.save()
-        f2.save()
-        f3.save()
-        net_settings_extended_form.save()
-        f0.save()
+        net_settings = net_settings_form.save()
+        net_settings_extended_form.instance=net_settings
+        net_settings = net_settings_extended_form.save()
+
+        wifi_settings = wireless_settings_form.save()
+
+        dhcpd_settings = dhcpd_settings_form.save()
+
+        netiface_profile = netiface_profile_form.save()
+        netiface_profile.net_settings = net_settings
+        netiface_profile.wifi_settings= wifi_settings
+        netiface_profile.dhcpd_settings = dhcpd_settings
+        netiface_profile.save()
 
     return simplejson.dumps({'status':message})
 
