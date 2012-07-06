@@ -18,13 +18,60 @@ def configuration_changed(request):
 
 @dajaxice_register
 def apply_changes(request):
+    messages = []
     status = models.get_status()
 
-    status.unmark_as_changed()
+    network_interfaces = ""
+    ntp_conf = ""
 
-    # TODO
+    # TODO: 
 
-    res = {"status":["Fallo 1"]}
+    netifaces = models.NetIface.objects.all()
+    for n in netifaces:
+      try:
+        # TODO: Clean previous files for each device
+
+        # print "> " + str(n)
+        p = n.get_enabled_profile() # can be none
+        if n.enabled and p:
+            network_interfaces += p.to_network_interfaces()
+            type_ = p.netiface_type
+
+            if type_ == "bridges":
+                # wifi can be only master mode
+                if n.wifi_device:
+                    print p.to_hostapd_conf()
+
+            if type_ == "internal":
+                # cannot be p.dhcp == True
+                ntp_conf = p.to_ntp_conf()
+
+                # wifi can be only master mode
+                if n.wifi_device:
+                    print p.to_hostapd_conf()
+
+            if type_ == "external":
+                if not p.net_settings.dhcp:
+                    ntp_conf = p.to_ntp_conf()
+
+                # wifi can be only client mode
+                if n.wifi_device:
+                    print p.to_wpa_supplicant_conf()
+
+            if type_ == "unused":
+                pass # nothing to do
+
+      except Exception, e:
+          messages.append(str(e))
+
+    print network_interfaces
+    print ntp_conf
+
+    res = {"status":messages}
+
+    if len (messages)== 0:
+        # status.unmark_as_changed()
+        pass
 
     return simplejson.dumps(res)
 

@@ -45,11 +45,10 @@ WEP_KEYMODE_CHOICES = [
 
 
 class Error(Exception):
-    def __init__(self, value, _object):
+    def __init__(self, value):
         self.value = value
-        self._object = _object
     def __str__(self):
-        return str(self._object) + " - " + repr(self.value)
+        return self.value
 
 
 class Status(models.Model):
@@ -287,6 +286,20 @@ class NetBridge(models.Model):
 
       super(NetBridge, self).save(*args, **kwargs)
 
+    def get_enabled_profile(self):
+        related_profiles = \
+NetBridgeProfile.objects.filter(bridge=self)
+
+        for r in related_profiles:
+            if r.enabled:
+                return  r
+
+        return None
+        # raise Error("NetBridge (%s) hasn't got any profile enabled"
+        #             % self.name)
+
+
+
 class NetBridgeProfile(models.Model):
     class Meta:
         verbose_name = 'Network bridge profile'
@@ -341,6 +354,30 @@ class NetIface(models.Model):
 
       super(NetIface, self).save(*args, **kwargs)
 
+
+    def get_enabled_profile(self):
+        related_netiface_profiles = \
+NetIfaceProfile.objects.filter(netiface=self)
+
+        for r in related_netiface_profiles:
+            if r.enabled:
+                return r
+
+        return None
+        # raise Error("Netiface (%s) hasn't got any profile enabled"
+        #             % self.name)
+
+
+
+
+
+
+
+
+
+
+
+
 class NetIfaceProfile(models.Model):
     class Meta:
         verbose_name = 'Network interface profile'
@@ -392,7 +429,252 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
       super(NetIfaceProfile, self).save(*args, **kwargs)
 
 
+    def _generate_static_params(self):
+            name = self.netiface.name
 
+            if not self.net_settings:
+              raise Error("NetIfaceProfile for %s NetIface is wrong configured"
+                % name)
+
+            ip = ""
+            if self.net_settings.ip:
+                ip = self.net_settings.ip
+            netmask=""
+            if self.net_settings.netmask:
+                netmask = self.net_settings.netmask
+            gateway=""
+            if self.net_settings.gateway:
+                gateway = self.net_settings.gateway
+            dns1=""
+            if self.net_settings.dns1:
+                dns1 = self.net_settings.dns1
+            dns2 = ""
+            if self.net_settings.dns2:
+                dns2 = self.net_settings.dns2
+
+            static_params = ""
+
+            if ip == "":
+                raise Error(\
+              "IP for NetIface (%s) is empty"
+              % name)
+
+            if netmask == "":
+                raise Error( "Netmask for NetIface (%s) is empty"
+                        % name)
+
+            static_params += "address " + ip + "\n"
+            static_params += "netmask " + netmask + "\n"
+            if gateway != "":
+              static_params += "gateway " + gateway + "\n"
+
+            if dns1 != "" or dns2 != "":
+              static_params += "dns-nameservers " + \
+                dns1 + " " + dns2 + "\n"
+
+            return static_params
+
+    def _generate_wifi_params(self):
+            name = self.netiface.name
+
+            sets = self.wifi_settings
+
+            if not sets:
+                raise Error(\
+                  "NetIface %s is a wifi device but no WiFi settings was found"
+                  % name)
+
+            ssid = ""
+            if sets.ssid:
+                sets.ssid
+
+            if not sets.enabled:
+                return ""
+
+            if sets.wifi == "NONE":
+                return ""
+
+            if sets.wifi == "WEP":
+                if ssid != "":
+                    wifi_params += "wireless_essid" + ssid + "\n"
+
+                wifi_params += "wireless_mode managed" + "\n"
+
+                wep_channel = ""
+                if sets.wep_channel:
+                    wep_channel = sets.wep_channel
+                if wep_channel != "":
+                    wifi_params += "wireless_channel" + wep_channel + "\n"
+
+                wep_keymode = ""
+                if sets.wep_keymode:
+                    wep_keymode = sets.wep_keymode
+                if wep_keymode != "":
+                    wifi_params += "wireless_keymode" + wep_keymode + "\n"
+
+                wep_key1 = ""
+                if sets.wep_key1:
+                    wep_key1 = sets.wep_key1
+                if wep_key1 != "":
+                    wifi_params += "wireless_key1" + wep_key1 + "\n"
+
+                wep_key2 = ""
+                if sets.wep_key2:
+                    wep_key2 = sets.wep_key2
+                if wep_key2 != "":
+                    wifi_params += "wireless_key2" + wep_key2 + "\n"
+
+                wep_defaultkey = ""
+                if sets.wep_defaultkey:
+                    wep_defaultkey = sets.wep_defaultkey
+                if wep_defaultkey != "":
+                    wifi_params += "wireless_defaultkey" + wep_defaultkey + "\n"
+
+
+
+            if sets.wifi == "WPA":
+                if ssid != "":
+                    wifi_params += "wireless_essid" + ssid + "\n"
+
+                wifi_params += "wpa-driver wext\n"
+                wifi_params += \
+                  "/etc/wpa_supplicant/wpa_supplicant_%s.conf\n" % name
+
+            return wifi_params
+
+
+
+    def to_network_interfaces(self):
+
+
+        name = self.netiface.name
+        is_wifi = self.netiface.wifi_device
+
+        type_ = self.netiface_type
+
+        if not self.net_settings:
+            raise Error("NetIfaceProfile for %s NetIface is wrong configured"
+                % name)
+
+        if is_wifi and not self.wifi_settings:
+            raise Error(\
+              "NetIface %s is a wifi device but no WiFi settings was found"
+              % name)
+
+
+        ### Network configuration depends on netiface_type ...
+
+        if type_ == "bridge":
+            res = \
+'''
+auto %s
+iface %s inet manual
+'''
+            return res % (name,name)
+
+        if type_ == "internal":
+
+            res = \
+'''
+auto %s
+iface %s inet static
+%s
+'''
+            static_params = self._generate_static_params()
+            # no wifi params needed because internal netiface wifi is only
+            # available on master mode and this setup is configurable on
+            # hostapd conffile.
+            return res % (name, name,static_params)
+
+        if type_ == "external":
+
+            res = \
+'''
+auto %s
+iface %s inet %s
+%s
+%s
+'''
+            if self.net_settings.dhcp:
+                mode = "dhcp"
+                static_params = ""
+            else:
+                mode = "static"
+                static_params = self._generate_static_params()
+
+            if is_wifi:
+                wifi_params = self._generate_wifi_params()
+            else:
+                wifi_params = ""
+
+            return res % (name, name, mode, static_params, wifi_params)
+
+
+        if type_ == "external":
+            pass
+
+        if type_ == "unused":
+            return "\n"
+
+        return "\n"
+
+    def to_wpa_supplicant_conf(self):
+        skeleton = \
+'''
+'''
+
+        return ""
+
+    def to_hostapd_conf(self):
+        skeleton = \
+'''
+'''
+
+        return ""
+
+    def to_ntp_conf(self):
+        skeleton = \
+'''driftfile /var/lib/ntp/ntp.drift
+
+statistics loopstats peerstats clockstats
+filegen loopstats file loopstats type day enable
+filegen peerstats file peerstats type day enable
+filegen clockstats file clockstats type day enable
+
+server 0.ubuntu.pool.ntp.org
+server 1.ubuntu.pool.ntp.org
+%s
+
+restrict -4 default kod notrap nomodify nopeer noquery
+restrict -6 default kod notrap nomodify nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+'''
+        profile = self
+
+        if not profile.net_settings:
+            return ""
+
+        if not profile.net_settings.ntp1:
+            ntp1 = ""
+        else:
+            ntp1 = profile.net_settings.ntp1
+
+        if not profile.net_settings.ntp2:
+            ntp2 = ""
+        else:
+            ntp2 = profile.net_settings.ntp2
+
+        if ntp1 == "" and ntp2 == "":
+            return ""
+
+        servers = ""
+        if ntp1 != "":
+            servers = servers + "server " + ntp1 + "\n"
+        if ntp2 != "":
+            servers = servers + "server " + ntp2 + "\n"
+
+        return skeleton % servers
 
 
 
