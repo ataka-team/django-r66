@@ -17,16 +17,10 @@ WIFI_CHOICES = [
 ]
 
 WPA_KEY_MGMT_CHOICES = [
-    ('WPA-EAP', _('WPA-EAP')),
     ('WPA-PSK', _('WPA-PSK')),
-    ('IEEE8021X', _('IEEE8021X')),
     ('NONE', _('NONE')),
 ]
-
-WPA_PROTO_CHOICES = [
-    ('WPA', _('WPA')),
-    ('WPA2', _('WPA2')),
-]
+#    ('WPA-EAP', _('WPA-EAP')),
 
 WPA_EAP_CHOICES = [
     ('TLS', _('TLS')),
@@ -126,8 +120,8 @@ class WirelessSettings(models.Model):
         default="NONE")
 
     # wpa
-    wpa_scan_ssid = models.PositiveIntegerField(
-        blank=True, null=True)
+    wpa_scan_ssid = models.BooleanField(
+        default=False)
     wpa_proto = models.CharField(max_length=30,
         choices=WPA_PROTO_CHOICES,
         blank=True, null=True)
