@@ -165,24 +165,24 @@ def send_3gppp(request, form):
 
     ppp_list = models.NetPPP.objects.all()
     if len(ppp_list)==0:
-          ppp = NetPPP()
+          ppp = models.NetPPP()
           ppp.save()
     else:
           ppp = ppp_list[0]
 
 
-    3gppp_form = forms.NetPPPForm(form, instance = \
+    netppp_form = forms.NetPPPForm(form, instance = \
               ppp, prefix="3gppp"
         )
 
     valid = True
-    if not 3gppp_form.is_valid():
+    if not netppp_form.is_valid():
         valid = False
-        e = 3gppp_form.errors
+        e = netppp_form.errors
         message = message + [e.as_ul()]
 
     if valid:
-        ppp = 3gppp_form.save()
+        ppp = netppp_form.save()
 
     return simplejson.dumps({'status':message})
 

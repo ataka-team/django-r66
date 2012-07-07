@@ -47,9 +47,9 @@ def home(request, page_id):
       context_dict["title"] = "PPP/3G"
       context_dict["content_description"] = "PPP/3G devices managed by R66"
 
-      ppp_list = models.NetPPP.objects.all()
+      ppp_list = r66.models.NetPPP.objects.all()
       if len(ppp_list)==0:
-          ppp = NetPPP()
+          ppp = r66.models.NetPPP()
           ppp.save()
       else:
           ppp = ppp_list[0]
