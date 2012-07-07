@@ -37,6 +37,10 @@ WEP_KEYMODE_CHOICES = [
     ('restricted', _("restricted")),
 ]
 
+def get_str_or_empty_str(obj):
+    if obj:
+        return obj
+    return ""
 
 class Error(Exception):
     def __init__(self, value):
@@ -678,6 +682,77 @@ network={
             wpa_params += 'psk="%s"\n' % wpa_psk
 
         return skeleton % wpa_params
+
+    def to_dhcpd_conf(self):
+        skeleton = \
+'''
+subnet %s netmask %s {
+   interface %s
+
+   ddns-update-style none;
+
+%s
+
+   pool {
+        allow unknown-clients;
+   }
+
+}
+
+'''
+        dhcpd_params = ""
+
+        name = self.netiface.name
+
+        sets = self.dhcpd_settings
+
+        if not sets:
+            return ""
+
+        if not sets.enabled:
+            return ""
+
+        if not self.net_settings:
+            raise Error("NetIfaceProfile for %s NetIface is wrong configured"
+                % name)
+
+        subnet = get_str_or_empty_str(sets.subnet)
+        if subnet == "":
+            raise Error("DHCPD subnet is needed for %s NetIface"
+                % name)
+        netmask = get_str_or_empty_str(sets.netmask)
+        if netmask == "":
+            raise Error("DHCPD netmask is needed for %s NetIface"
+                % name)
+
+        if sets.authoritative:
+            dhcpd_params += "option authoritative;\n"
+
+        dns = get_str_or_empty_str(sets.dns)
+        if dns != "":
+            dhcpd_params += "option domain-name-servers " + dns + " ;\n"
+        domain_name = get_str_or_empty_str(sets.domain_name)
+        if domain_name != "":
+            dhcpd_params += "option domain-name " + domain_name + " ;\n"
+
+        routers = get_str_or_empty_str(sets.routers)
+        if routers != "":
+            dhcpd_params += "option routers " + routers + " ;\n"
+        broadcast_address = get_str_or_empty_str(sets.broadcast_address)
+        if broadcast_address != "":
+            dhcpd_params += "option broadcast-address " + broadcast_address + " ;\n"
+        default_lease_time = get_str_or_empty_str(sets.default_lease_time)
+        if default_lease_time != "":
+            dhcpd_params += "option default-lease-time " + default_lease_time + " ;\n"
+        max_lease_time = get_str_or_empty_str(sets.max_lease_time)
+        if max_lease_time != "":
+            dhcpd_params += "option max_lease_time " + max_lease_time + " ;\n"
+
+
+
+
+        return skeleton % (subnet,netmask,name,dhcpd_params)
+
 
     def to_hostapd_conf(self):
         skeleton = \

@@ -50,6 +50,11 @@ def apply_changes(request):
                 if n.wifi_device:
                     print p.to_hostapd_conf()
 
+                if p.dhcpd_settings  \
+                        and p.dhcpd_settings.enabled:
+                    print p.to_dhcpd_conf()
+
+
             if type_ == "external":
                 if not p.net_settings.dhcp:
                     ntp_conf = p.to_ntp_conf()
