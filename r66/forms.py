@@ -29,17 +29,8 @@ class WirelessSettingsWpaForm(django.forms.ModelForm):
     class Meta:
         model = models.WirelessSettings
         fields = ("wpa_scan_ssid",
-                "wpa_proto",
                 "wpa_key_mgmt",
                 "wpa_psk",
-                "wpa_eap",
-                "wpa_pairwise",
-                "wpa_ca_cert",
-                "wpa_private_key",
-                "wpa_private_key_passwd",
-                "wpa_identity",
-                "wpa_password",
-                "wpa_phase2",
                 )
 
 class WirelessSettingsWepForm(django.forms.ModelForm):

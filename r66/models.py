@@ -120,38 +120,48 @@ class WirelessSettings(models.Model):
         default="NONE")
 
     # wpa
+    wpa_priority = models.PositiveSmallIntegerField(
+            blank=True, null=True,)
     wpa_scan_ssid = models.BooleanField(
         default=False)
-    wpa_proto = models.CharField(max_length=30,
-        choices=WPA_PROTO_CHOICES,
-        blank=True, null=True)
     wpa_key_mgmt = models.CharField(max_length=30,
         choices=WPA_KEY_MGMT_CHOICES,
         blank=True, null=True)
-    wpa_psk = models.CharField(max_length=250,
+
+    # None and WPA-PSK parameters
+    wpa_psk = models.CharField(max_length=63,
         blank=True, null=True)
+    # End. None and WPA-PSK parameters
+
+    # WPA-EAP parameters
     wpa_eap = models.CharField(
         choices=WPA_EAP_CHOICES,
         max_length=30,
         blank=True, null=True)
-    wpa_pairwise = models.CharField(max_length=30,
-        choices=WPA_PAIRWISE_CHOICES,
-        blank=True, null=True)
     wpa_ca_cert = models.TextField(max_length=1000,
-        blank=True, null=True)
-    wpa_private_key  = models.TextField(max_length=1000,
-        blank=True, null=True)
-    wpa_private_key_passwd = models.TextField(max_length=1000,
         blank=True, null=True)
     wpa_identity = models.CharField(max_length=100,
         blank=True, null=True)
+    # End. WPA-EAP parameters
+
+
+    # WPA-EAP + TLS parameters    
+    wpa_client_cert = models.TextField(max_length=1000,
+        blank=True, null=True)
+    wpa_private_key  = models.TextField(max_length=1000,
+        blank=True, null=True)
+    wpa_private_key_passwd = models.CharField(max_length=100,
+        blank=True, null=True)
+
+    # WPA-EAP + PEAP parameters    
     wpa_password = models.CharField(max_length=100,
         blank=True, null=True)
-    wpa_phase2 = models.TextField(max_length=1000,
+    wpa_phase1 = models.CharField(max_length=100,
         blank=True, null=True)
-
-
+    wpa_phase2 = models.CharField(max_length=100,
+        blank=True, null=True)
     # phase2="auth=MSCHAPV2"
+    # End. WPA-EAP + PEAP parameters    
 
 
     # wep
@@ -469,6 +479,8 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
             return static_params
 
     def _generate_wifi_params(self):
+            wifi_params = ""
+
             name = self.netiface.name
 
             sets = self.wifi_settings
@@ -480,7 +492,7 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
 
             ssid = ""
             if sets.ssid:
-                sets.ssid
+                ssid = sets.ssid
 
             if not sets.enabled:
                 return ""
@@ -490,7 +502,7 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
 
             if sets.wifi == "WEP":
                 if ssid != "":
-                    wifi_params += "wireless_essid" + ssid + "\n"
+                    wifi_params += "wireless_essid " + ssid + "\n"
 
                 wifi_params += "wireless_mode managed" + "\n"
 
@@ -498,38 +510,35 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
                 if sets.wep_channel:
                     wep_channel = sets.wep_channel
                 if wep_channel != "":
-                    wifi_params += "wireless_channel" + wep_channel + "\n"
+                    wifi_params += "wireless_channel " + wep_channel + "\n"
 
                 wep_keymode = ""
                 if sets.wep_keymode:
                     wep_keymode = sets.wep_keymode
                 if wep_keymode != "":
-                    wifi_params += "wireless_keymode" + wep_keymode + "\n"
+                    wifi_params += "wireless_keymode " + wep_keymode + "\n"
 
                 wep_key1 = ""
                 if sets.wep_key1:
                     wep_key1 = sets.wep_key1
                 if wep_key1 != "":
-                    wifi_params += "wireless_key1" + wep_key1 + "\n"
+                    wifi_params += "wireless_key1 " + wep_key1 + "\n"
 
                 wep_key2 = ""
                 if sets.wep_key2:
                     wep_key2 = sets.wep_key2
                 if wep_key2 != "":
-                    wifi_params += "wireless_key2" + wep_key2 + "\n"
+                    wifi_params += "wireless_key2 " + wep_key2 + "\n"
 
                 wep_defaultkey = ""
                 if sets.wep_defaultkey:
                     wep_defaultkey = sets.wep_defaultkey
                 if wep_defaultkey != "":
-                    wifi_params += "wireless_defaultkey" + wep_defaultkey + "\n"
+                    wifi_params += "wireless_defaultkey " + wep_defaultkey + "\n"
 
 
 
             if sets.wifi == "WPA":
-                if ssid != "":
-                    wifi_params += "wireless_essid" + ssid + "\n"
-
                 wifi_params += "wpa-driver wext\n"
                 wifi_params += \
                   "/etc/wpa_supplicant/wpa_supplicant_%s.conf\n" % name
@@ -615,9 +624,60 @@ iface %s inet %s
     def to_wpa_supplicant_conf(self):
         skeleton = \
 '''
-'''
+ctrl_interface=/var/run/wpa_supplicant
 
-        return ""
+network={
+%s
+}
+
+'''
+        wpa_params = ""
+
+        name = self.netiface.name
+        is_wifi = self.netiface.wifi_device
+        type_ = self.netiface_type
+
+        if not is_wifi:
+            return ""
+
+        sets = self.wifi_settings
+
+        if not sets:
+            raise Error(\
+              "NetIface %s is a wifi device but no WiFi settings was found"
+              % name)
+
+
+        if sets.wpa_scan_ssid:
+            wpa_params += "scan_ssid=1\n"
+        else:
+            wpa_params += "scan_ssid=0\n"
+
+        ssid = ""
+        if sets.ssid:
+            ssid= sets.ssid
+        wpa_params += 'ssid="%s"\n' % ssid
+
+
+        if sets.wpa_key_mgmt=="NONE":
+            wpa_psk = ""
+            if sets.wpa_psk:
+                wpa_psk= sets.wpa_psk
+            wpa_psk = netutils.get_wpa_passphrase(\
+                        ssid, wpa_psk)
+            wpa_params += 'psk="%s"\n' % wpa_psk
+
+
+        if sets.wpa_key_mgmt=="WPA-PSK":
+            wpa_params += "key_mgmt=WPA-PSK\n"
+            wpa_psk = ""
+            if sets.wpa_psk:
+                wpa_psk = sets.wpa_psk
+            wpa_psk = netutils.get_wpa_passphrase(\
+                        ssid, wpa_psk)
+            wpa_params += 'psk="%s"\n' % wpa_psk
+
+        return skeleton % wpa_params
 
     def to_hostapd_conf(self):
         skeleton = \

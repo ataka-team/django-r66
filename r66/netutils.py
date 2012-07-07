@@ -5,6 +5,19 @@ IFCONFIG = "/sbin/ifconfig"
 CMD_IP = "/bin/ip"
 CMD_IWCONFIG = "/sbin/iwconfig"
 CMD_BRCTL = "/sbin/brctl"
+CMD_WPA_PASSPHRASE = "/usr/sbin/wpa_passphrase"
+
+def get_wpa_passphrase(ssid, passphrase):
+  pipe = subprocess.Popen( CMD_WPA_PASSPHRASE + " " + ssid + " "
+          + passphrase, shell=True, bufsize=0, stdout=subprocess.PIPE).stdout
+  for l in pipe:
+    if l.find("#psk=") != -1:
+        continue
+    if l.find("psk=") != -1:
+      return l.split("psk=")[1].strip()
+
+  raise Exception("No passphrase generated")
+
 
 def get_interfaces_names():
   res = []
