@@ -36,8 +36,7 @@ def apply_changes(request):
         if n.enabled and p:
             network_interfaces += p.to_network_interfaces()
             type_ = p.netiface_type
-
-            if type_ == "bridges":
+            if type_ == "bridge":
                 # wifi can be only master mode
                 if n.wifi_device:
                     print p.to_hostapd_conf()
@@ -210,6 +209,10 @@ def send_netiface_profile(request, form):
     wireless_settings_wpa_form = forms.WirelessSettingsWpaForm(form, instance = \
              wifi_settings, prefix="wifiwpa"
         )
+    wireless_settings_hostapd_form = forms.WirelessSettingsHostapdForm(form, instance = \
+             wifi_settings, prefix="wifihostapd"
+        )
+
 
     dhcpd_settings_form = forms.DhcpdSettingsForm(form, instance = \
               dhcpd_settings, prefix="dhcpd"
@@ -255,6 +258,10 @@ def send_netiface_profile(request, form):
         valid = False
         e = wireless_settings_wpa_form.errors
         message = message + [e.as_ul()]
+    if not wireless_settings_hostapd_form.is_valid():
+        valid = False
+        e = wireless_settings_hostapd_form.errors
+        message = message + [e.as_ul()]
 
     if not dhcpd_settings_form.is_valid():
         valid = False
@@ -275,12 +282,19 @@ def send_netiface_profile(request, form):
         wifi_settings = forms.WirelessSettingsNoneForm(form, instance = \
              wifi_settings, prefix="wifinone"
         ).save()
-        wifi_settings = forms.WirelessSettingsWepForm(form, instance = \
+
+        if form_dict["profile-netiface_type"] == "external":
+          wifi_settings = forms.WirelessSettingsWepForm(form, instance = \
              wifi_settings, prefix="wifiwep"
-        ).save()
-        wifi_settings = forms.WirelessSettingsWpaForm(form, instance = \
+          ).save()
+          wifi_settings = forms.WirelessSettingsWpaForm(form, instance = \
              wifi_settings, prefix="wifiwpa"
-        ).save()
+          ).save()
+        else:
+          wifi_settings = forms.WirelessSettingsHostapdForm(form, instance = \
+             wifi_settings, prefix="wifihostapd"
+          ).save()
+
 
         dhcpd_settings = dhcpd_settings_form.save()
         dhcpd_settings = forms.DhcpdSettingsExtendedForm(form, instance = \

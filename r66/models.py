@@ -426,7 +426,7 @@ class NetIfaceProfile(models.Model):
           # and demark as enabled
           related_netiface_profiles = \
 NetIfaceProfile.objects.filter(netiface=self.netiface)
-          
+
           for r in related_netiface_profiles:
               if r.enabled:
                   r.enabled = False
@@ -757,9 +757,42 @@ subnet %s netmask %s {
     def to_hostapd_conf(self):
         skeleton = \
 '''
-'''
+interface=%s
+ssid=%s
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=%s
+wpa=2
+wpa_passphrase=%s
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP
+rsn_pairwise=CCMP
 
-        return ""
+'''
+        hostapd_params = ""
+
+        name = self.netiface.name
+        is_wifi = self.netiface.wifi_device
+        type_ = self.netiface_type
+
+        if not is_wifi:
+            return ""
+
+        sets = self.wifi_settings
+
+        if not sets:
+            raise Error(\
+              "NetIface %s is a wifi device but no WiFi settings was found"
+              % name)
+
+        if sets.wpa_scan_ssid:
+            ignore_broadcast_ssid = "0"
+        else:
+            ignore_broadcast_ssid = "1"
+
+        ssid = get_str_or_empty_str(sets.ssid)
+        wpa_passphrase = get_str_or_empty_str(sets.wpa_psk)
+        return skeleton % (name, ssid, ignore_broadcast_ssid, wpa_passphrase)
 
     def to_ntp_conf(self):
         skeleton = \

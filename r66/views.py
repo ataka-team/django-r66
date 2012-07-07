@@ -144,6 +144,12 @@ def interfaces(request, profile_id=None):
             r66.forms.WirelessSettingsWpaForm (instance = \
               wifi_settings, prefix="wifiwpa"
             )
+
+    context_dict["wifi_settings_hostapd_form"] = \
+            r66.forms.WirelessSettingsHostapdForm (instance = \
+              wifi_settings, prefix="wifihostapd"
+            )
+
     context_dict["dhcpd_settings_form"] = \
             r66.forms.DhcpdSettingsForm (instance = \
               dhcpd_settings, prefix="dhcpd"

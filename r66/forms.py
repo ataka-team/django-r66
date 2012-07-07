@@ -33,6 +33,15 @@ class WirelessSettingsWpaForm(django.forms.ModelForm):
                 "wpa_psk",
                 )
 
+class WirelessSettingsHostapdForm(django.forms.ModelForm):
+    class Meta:
+        model = models.WirelessSettings
+        fields = (
+                "ssid",
+                "wpa_scan_ssid",
+                "wpa_psk",
+                )
+
 class WirelessSettingsWepForm(django.forms.ModelForm):
     class Meta:
         model = models.WirelessSettings
