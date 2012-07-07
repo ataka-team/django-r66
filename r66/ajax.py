@@ -26,6 +26,12 @@ def apply_changes(request):
 
     # TODO: 
 
+    ppp = models.3Gppp.objects.all()
+    for p in ppp:
+        if p.enabled:
+            print p.to_peer()
+            print p.to_chat()
+
     netifaces = models.NetIface.objects.all()
     for n in netifaces:
       try:
@@ -149,6 +155,39 @@ def delete_netiface_profile(request, id):
         p.delete()
 
     return simplejson.dumps({'status':message})
+
+
+@dajaxice_register
+def send_3gppp(request, form):
+    message = []
+    form_dict = helpers.serialized_array_to_dict(form)
+    form = form_dict
+
+    ppp_list = models.3Gppp.objects.all()
+    if len(ppp_list)==0:
+          ppp = 3Gppp()
+          ppp.save()
+    else:
+          ppp = ppp_list[0]
+
+
+    3gppp_form = forms.3GpppForm(form, instance = \
+              ppp, prefix="3gppp"
+        )
+
+    valid = True
+    if not 3gppp_form.is_valid():
+        valid = False
+        e = 3gppp_form.errors
+        message = message + [e.as_ul()]
+
+    if valid:
+        ppp = 3gppp_form.save()
+
+    return simplejson.dumps({'status':message})
+
+
+
 
 
 @dajaxice_register

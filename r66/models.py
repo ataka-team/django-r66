@@ -2,6 +2,13 @@ from django.db import models
 from r66 import netutils
 from django.utils.translation import ugettext_lazy as _
 
+PPP_MODE_CHOICES = [
+    ('3g-only', _('3G only')),
+    ('3g-pref', _('3G preference')),
+    ('gprs-only', _('GPRS only')),
+    ('gprs-pref', _('GPRS preference')),
+    ('none', _('None')),
+]
 
 NETIFACE_TYPE_CHOICES = [
     ('bridge', _('Network bridge')),
@@ -838,5 +845,136 @@ restrict ::1
 
         return skeleton % servers
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+class 3Gppp(models.Model):
+    class Meta:
+        verbose_name = '3G ppp'
+
+    enabled=models.BooleanField(default=False)
+
+    user = models.CharField(
+            blank=True, null=True)
+    password = models.CharField(
+            blank=True, null=True)
+
+    apn = models.CharField(
+            blank=True, null=True)
+
+    pin = models.IntegerField(
+            blank=True, null=True)
+
+    mode = models.CharField(_("Mode"),
+            choices=PPP_MODE_CHOICES,
+                        default='3g-pref',
+                        max_length=100)
+
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      super(3Gppp, self).save(*args, **kwargs)
+
+
+    def to_peer(self):
+        skeleton = '''
+ttyUSB0
+921600
+lock
+crtscts
+modem
+passive
+novj
+defaultroute
+noipdefault
+usepeerdns
+noauth
+hide-password
+persist
+holdoff 10
+maxfail 0
+debug
+
+%s
+
+connect "/usr/sbin/chat -v -t15 -f /etc/ppp/r66.chat"
+
+'''
+
+
+        if not self.enabled:
+            return ""
+
+        peer_params = ""
+        user = get_str_or_empty_str(self.user)
+        if user != "":
+            peer_params += 'user %s\n' % user
+        if password != "":
+            peer_params += 'password %s\n' % password
+        return skeleton % peer_params
+
+
+
+    def to_chat(self):
+        skeleton = '''
+ABORT 'BUSY'
+ABORT 'NO CARRIER'
+ABORT 'VOICE'
+ABORT 'NO DIALTONE'
+ABORT 'NO DIAL TONE'
+ABORT 'NO ANSWER'
+ABORT 'DELAYED'
+REPORT CONNECT
+TIMEOUT 6
+'' 'ATQ0'
+'OK-AT-OK' 'ATZ'
+TIMEOUT 3
+'OK' '%s'
+'OK\d-AT-OK' 'ATI'
+'OK' 'ATZ'
+'OK' 'ATQ0 V1 E1 S0=0 &C1 &D2 +FCLASS=0'
+'OK' '%s'
+'OK-AT-OK' 'AT+CGDCONT=1,"IP","%s"'
+'OK' 'ATDT*99***1#'
+TIMEOUT 30
+CONNECT ''
+
+'''
+
+
+        if not self.enabled:
+            return ""
+
+        pin = get_str_or_empty_str(self.pin)
+        if pin != "":
+            pin = 'AT+CPIN=%s' % pin
+        else:
+            pin = 'AT'
+
+        mode = get_str_or_empty_str(self.mode)
+        if mode == "3g-pref":
+            mode = "AT\^SYSCFG=2,2,3fffffff,0,1"
+        if mode == "3g-only":
+            mode = "AT\^SYSCFG=14,2,3fffffff,0,1"
+        if mode == "gprs-pref":
+            mode = "AT\^SYSCFG=2,1,3fffffff,0,0"
+        if mode == "gprs-only":
+            mode = "AT\^SYSCFG=13,1,3fffffff,0,0"
+        if mode == "none":
+            mode = "AT"
+
+        apn = get_str_or_empty_str(self.apn)
+
+        return skeleton % (pin,mode,apn)
 
 

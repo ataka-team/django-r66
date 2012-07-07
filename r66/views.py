@@ -43,6 +43,25 @@ def home(request, page_id):
     context_dict["page_id"] = page_id
     context = RequestContext(request, context_dict)
 
+    if page_id == "ppp3g":
+      context_dict["title"] = "PPP/3G"
+      context_dict["content_description"] = "PPP/3G devices managed by R66"
+
+      ppp_list = models.3Gppp.objects.all()
+      if len(ppp_list)==0:
+          ppp = 3Gppp()
+          ppp.save()
+      else:
+          ppp = ppp_list[0]
+
+      context_dict["3gppp_form"] = \
+            r66.forms.3GpppForm(instance = \
+              ppp, prefix="3gppp"
+            )
+ 
+      return render_to_response('r66/ppp3g.html', context)
+
+
     if page_id == "interfaces":
       context_dict["title"] = "Interfaces"
       context_dict["content_description"] = "Network interfaces managed by R66"

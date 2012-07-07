@@ -1,0 +1,101 @@
+{% extends "r66/base.html" %}
+{% load i18n %}
+{% load r66_extras %}
+{% load sekizai_tags %}
+
+
+        {% block sidebar %}
+        {% render_home_menu page_id %}
+        {% endblock sidebar %}
+
+
+
+          {% block content %}
+            {% block object-tools %}
+            {% endblock %}
+						{{ content }}
+
+		<form action="" method="post" id="3gppp_form"
+			accept-charset="utf-8">{% csrf_token %}
+
+
+      <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+      <th> Name </th>
+      <th> Value </th>
+      </tr>
+      </thead>
+      <tbody>
+        {{ 3gppp_form.as_table }}
+      </tbody>
+      </table>
+
+      <p>
+          <input value="Update profile" id="send_msg"
+          onclick="send_3gppp();" type="button" />
+      </p>
+    </form>
+
+
+{% addtoblock "js" %}
+<script type="text/javascript">
+
+  function generic_3gppp_callback(data){
+
+     // Updating netifaces profiles navside
+     // Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
+
+     if (data.status.length > 0)
+     {
+       error = '<div id="alert-error" class="alert alert-error">'
+        + '  <button class="close" data-dismiss="alert">×</button>'
+				+ '    <ul>';
+
+				for (message in data.status){
+          error = error + "<li>" + data.status[message] + "</li>";
+				}
+
+      error = error + '    </ul>'
+        + '</div>';
+		  $("#alert-error").replaceWith(error);
+		 }
+		 else 
+		 {
+		   info = '<div id="alert-info" class="alert alert-info">'
+        + '  <button class="close" data-dismiss="alert">×</button>'
+        + '    <ul>'
+        + '      <li> Correctly updated </li>'
+        + '    </ul>'
+        + '</div>';
+
+			 $("#alert-info").replaceWith(info);
+
+			 window.location.href = "{% url r66-success %}";
+
+    }
+
+  }
+
+
+  function send_netiface_profile(){
+    data = $('#3gppp_form').serializeArray();
+    Dajaxice.r66.send_3gppp(generic_3gppp_callback, {'form':data});
+    return false;
+  }
+
+
+  $( function() {
+
+
+  });
+
+</script>
+{% endaddtoblock %}
+
+
+
+
+          {% endblock %}
+
+
