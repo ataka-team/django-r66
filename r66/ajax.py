@@ -26,7 +26,7 @@ def apply_changes(request):
 
     # TODO: 
 
-    ppp = models.3Gppp.objects.all()
+    ppp = models.NetPPP.objects.all()
     for p in ppp:
         if p.enabled:
             print p.to_peer()
@@ -163,15 +163,15 @@ def send_3gppp(request, form):
     form_dict = helpers.serialized_array_to_dict(form)
     form = form_dict
 
-    ppp_list = models.3Gppp.objects.all()
+    ppp_list = models.NetPPP.objects.all()
     if len(ppp_list)==0:
-          ppp = 3Gppp()
+          ppp = NetPPP()
           ppp.save()
     else:
           ppp = ppp_list[0]
 
 
-    3gppp_form = forms.3GpppForm(form, instance = \
+    3gppp_form = forms.NetPPPForm(form, instance = \
               ppp, prefix="3gppp"
         )
 

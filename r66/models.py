@@ -858,18 +858,18 @@ restrict ::1
 
 
 
-class 3Gppp(models.Model):
+class NetPPP(models.Model):
     class Meta:
         verbose_name = '3G ppp'
 
     enabled=models.BooleanField(default=False)
 
-    user = models.CharField(
+    user = models.CharField(max_length=100,
             blank=True, null=True)
-    password = models.CharField(
+    password = models.CharField(max_length=100,
             blank=True, null=True)
 
-    apn = models.CharField(
+    apn = models.CharField(max_length=100,
             blank=True, null=True)
 
     pin = models.IntegerField(
@@ -883,7 +883,7 @@ class 3Gppp(models.Model):
     def save(self, *args, **kwargs):
       get_status().mark_as_changed()
 
-      super(3Gppp, self).save(*args, **kwargs)
+      super(NetPPP, self).save(*args, **kwargs)
 
 
     def to_peer(self):

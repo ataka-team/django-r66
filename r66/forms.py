@@ -90,9 +90,9 @@ class NetBridgeProfileForm(django.forms.ModelForm):
                    )
 
 
-class 3GpppForm(django.forms.ModelForm):
+class NetPPPForm(django.forms.ModelForm):
     class Meta:
-        model = models.3Gppp
+        model = models.NetPPP
 
 
 
