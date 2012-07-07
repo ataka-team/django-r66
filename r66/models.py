@@ -919,6 +919,7 @@ connect "/usr/sbin/chat -v -t15 -f /etc/ppp/r66.chat"
         user = get_str_or_empty_str(self.user)
         if user != "":
             peer_params += 'user %s\n' % user
+        password = get_str_or_empty_str(self.password)
         if password != "":
             peer_params += 'password %s\n' % password
         return skeleton % peer_params
