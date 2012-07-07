@@ -872,7 +872,7 @@ class NetPPP(models.Model):
     apn = models.CharField(max_length=100,
             blank=True, null=True)
 
-    pin = models.IntegerField(
+    pin = models.CharField(max_length=10,
             blank=True, null=True)
 
     mode = models.CharField(_("Mode"),

@@ -24,13 +24,16 @@ def apply_changes(request):
     network_interfaces = ""
     ntp_conf = ""
 
-    # TODO: 
+    # TODO:
+
 
     ppp = models.NetPPP.objects.all()
     for p in ppp:
         if p.enabled:
             print p.to_peer()
             print p.to_chat()
+    # TODO: si no hay ppp hay q acordarse de eliminar los ficheros
+    # existentes
 
     netifaces = models.NetIface.objects.all()
     for n in netifaces:
