@@ -21,13 +21,11 @@
       <tr>
       <th> Name </th>
       <th> Status </th>
-      <th> Type </th>
       <th> Action </th>
       </tr>
       </thead>
       <tbody>
       <tr>
-      <td>…</td>
       <td>…</td>
       <td>…</td>
       <td>…</td>
@@ -62,12 +60,21 @@
 			+ ');" href="#" class="btn btn-danger">Disable</button>';
       }
 
-
+      iface_name = iface["fields"]["name"];
+      if (iface["fields"]["enabled"] ){
+        enabled_profile = "";
+        if (iface["fields"]["enabled_profile"]) {
+          enabled_profile = iface["fields"]["enabled_profile"]
+        }
+				iface_name = '' 
+			+ '<a href="{% url r66-interfaces %}' + enabled_profile 
+      + '">' + iface_name + '</a>';
+      }
+      
       table_ifaces_items.push(
-        "<tr><td>" + iface["fields"]["name"] + "</td>" +
+        "<tr><td>" + iface_name + "</td>" +
         "<td>" + state + "</td>" + 
-        "<td>" + action_button + "</td>" + 
-        "<td>" + iface["fields"]["description"] + "</td></tr>"
+        "<td>" + action_button + "</td></tr>"
       );
     })
 
@@ -79,7 +86,6 @@
       '  <th>Name</th> ' +
       '  <th>State</th> ' +
       '  <th>Action</th> ' +
-      '  <th>Description</th> ' +
       '</tr></thead>';
     var table_head = $(html_table_head);
 

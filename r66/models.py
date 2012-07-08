@@ -355,19 +355,15 @@ class NetIface(models.Model):
             choices=NETIFACE_TYPE_CHOICES,
                         default='unused', max_length=100)
 
+    enabled_profile = models.ForeignKey('NetIfaceProfile',
+            related_name='enabled_profile',
+            blank=True, null=True,)
 
     name = models.CharField(max_length=10)
     description = models.TextField(max_length=150)
 
     def __unicode__(self):
         return self.name
-
-    def save(self, *args, **kwargs):
-      get_status().mark_as_changed()
-
-      self.wifi_device = netutils.is_wifi_interface(self.name)
-
-      super(NetIface, self).save(*args, **kwargs)
 
 
     def get_enabled_profile(self):
@@ -383,6 +379,15 @@ NetIfaceProfile.objects.filter(netiface=self)
         #             % self.name)
 
 
+
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      self.wifi_device = netutils.is_wifi_interface(self.name)
+
+      self.enabled_profile = self.get_enabled_profile()
+
+      super(NetIface, self).save(*args, **kwargs)
 
 
 
@@ -427,6 +432,11 @@ class NetIfaceProfile(models.Model):
 
     def save(self, *args, **kwargs):
       get_status().mark_as_changed()
+
+      if self.netiface:
+
+         self.netiface.enabled_profile = self
+         self.netiface.save()
 
       if self.netiface and  self.enabled:
           # Search all NetIfaceProfile related with netiface
