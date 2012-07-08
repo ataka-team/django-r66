@@ -4,19 +4,65 @@ from django.template import loader
 from django.http import Http404
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
+from django.shortcuts import redirect
 
 from django.core import serializers
 from django.http import HttpResponsePermanentRedirect
 from django.core.urlresolvers import reverse
 from django.core import serializers
 
+
 from django import forms
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
 
 from r66 import helpers
 import r66.forms
 import r66.models
 
+@login_required
+def logout_user(request):
+    logout(request)
+    return redirect( reverse('r66-home',args=["interfaces"]) )
+
+def login_user(request):
+    username = password = ''
+    error_messages = []
+    messages = []
+    context_dict = RequestContext(request, {
+            'title': 'Login',
+            'content_description': 'Introduce username and password to access into the admin panel',
+            'error_messages': error_messages,
+            'messages': messages,
+            })
+    context_dict["page_id"] = "login"
+    next_ = request.GET.get('next')
+    context_dict["next"] = next_
+
+    if request.POST:
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        next_ = request.POST.get('next')
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                state = "You're successfully logged in!"
+                messages.append(state)
+                if next_:
+                    return redirect(next_)
+            else:
+                state = "Your account is not active, please contact the site admin."
+                error_messages.append(state)
+        else:
+            state = "Your username and/or password were incorrect."
+            error_messages.append(state)
+        context_dict["username"] = username
+
+    return render_to_response('r66/auth.html',context_dict)
+
+@login_required
 def index(request):
 
     context_dict = {}
@@ -28,6 +74,7 @@ def index(request):
     return render_to_response('r66/index.html', context_dict)
 
 
+@login_required
 def success(request):
 
     context_dict = RequestContext(request, {
@@ -38,6 +85,7 @@ def success(request):
     return render_to_response('r66/success.html', context_dict)
 
 
+@login_required
 def home(request, page_id):
     context_dict = helpers._create_context(request)
     context_dict["page_id"] = page_id
@@ -89,6 +137,7 @@ def home(request, page_id):
     return render_to_response('r66/anyother.html', context)
 
 
+@login_required
 def bridges(request, profile_id=None):
     page_id = "bridge_profiles"
 
@@ -104,6 +153,7 @@ def bridges(request, profile_id=None):
     return render_to_response('r66/bridge_profile.html', context)
 
 
+@login_required
 def interfaces(request, profile_id=None):
     page_id = "interface_profiles"
 
@@ -190,7 +240,7 @@ def interfaces(request, profile_id=None):
 
     return render_to_response('r66/interface_profile.html', context)
 
-
+@login_required
 def interfaces_index (request):
     _first_netiface_profile = None
     try:
@@ -202,6 +252,7 @@ def interfaces_index (request):
     return interfaces(request, _first_netiface_profile)
 
 
+@login_required
 def interfaces_new (request):
     return interfaces(request, None)
 
