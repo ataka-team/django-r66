@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from r66 import netutils
 from django.utils.translation import ugettext_lazy as _
 
@@ -562,7 +563,8 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
             if sets.wifi == "WPA":
                 wifi_params += "wpa-driver wext\n"
                 wifi_params += \
-                  "/etc/wpa_supplicant/wpa_supplicant_%s.conf\n" % name
+                  "%s/wpa_supplicant/%s.conf\n" \
+                  % (settings.R66_ETC_DIR, name)
 
             return wifi_params
 
@@ -704,7 +706,7 @@ network={
         skeleton = \
 '''
 subnet %s netmask %s {
-   interface %s
+   interface %s;
 
    ddns-update-style none;
 
@@ -760,10 +762,10 @@ subnet %s netmask %s {
             dhcpd_params += "option broadcast-address " + broadcast_address + " ;\n"
         default_lease_time = get_str_or_empty_str(sets.default_lease_time)
         if default_lease_time != "":
-            dhcpd_params += "option default-lease-time " + default_lease_time + " ;\n"
+            dhcpd_params += "option default-lease-time " + str(default_lease_time) + " ;\n"
         max_lease_time = get_str_or_empty_str(sets.max_lease_time)
         if max_lease_time != "":
-            dhcpd_params += "option max_lease_time " + max_lease_time + " ;\n"
+            dhcpd_params += "option max_lease_time " + str(max_lease_time) + " ;\n"
 
 
 
@@ -917,7 +919,7 @@ debug
 
 %s
 
-connect "/usr/sbin/chat -v -t15 -f /etc/ppp/r66.chat"
+connect "/usr/sbin/chat -v -t15 -f %s/ppp/r66.chat"
 
 '''
 
@@ -932,7 +934,7 @@ connect "/usr/sbin/chat -v -t15 -f /etc/ppp/r66.chat"
         password = get_str_or_empty_str(self.password)
         if password != "":
             peer_params += 'password %s\n' % password
-        return skeleton % peer_params
+        return skeleton % (peer_params, settings.R66_ETC_DIR)
 
 
 

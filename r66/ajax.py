@@ -1,13 +1,36 @@
 from django.utils import simplejson
+from django.core import serializers
+from dajaxice.decorators import dajaxice_register
+from django.conf import settings
+
 from dajaxice.core import dajaxice_functions
 import netutils
 import models
 import helpers
 import forms
 
-from django.core import serializers
+import os
+import subprocess
 
-from dajaxice.decorators import dajaxice_register
+def _deletefile(filename):
+  subprocess.Popen( "rm -f " + filename,
+          shell=True, bufsize=0,
+          stdout=open('/dev/null','w'),
+          stderr=open('/dev/null','w'))
+
+
+def _writefile(strings,filename):
+    aux = filename.split(os.sep)[0:-1]
+    _d = ""
+    for i in aux:
+        _d = _d + i + os.sep
+        try:
+          os.mkdir(_d)
+        except Exception:
+          pass
+    f = open(filename, 'w')
+    f.write(strings)
+    f.close()
 
 @dajaxice_register
 def configuration_changed(request):
@@ -23,17 +46,28 @@ def apply_changes(request):
 
     network_interfaces = ""
     ntp_conf = ""
-
-    # TODO:
-
+    dhcpd_conf = "log-facility local7;\n\n"
 
     ppp = models.NetPPP.objects.all()
     for p in ppp:
+        _deletefile(settings.R66_ETC_DIR
+                    + "/ppp/peers/r66")
+        _deletefile(settings.R66_ETC_DIR
+                    + "/ppp/r66.chat")
+
         if p.enabled:
-            print p.to_peer()
-            print p.to_chat()
-    # TODO: si no hay ppp hay q acordarse de eliminar los ficheros
-    # existentes
+            strings = p.to_peer()
+            _writefile(strings, settings.R66_ETC_DIR
+                    + "/ppp/peers/r66")
+            strings = p.to_chat()
+            _writefile(strings, settings.R66_ETC_DIR
+                    + "/ppp/r66.chat")
+
+    _deletefile(settings.R66_ETC_DIR
+                    + "/hostapd/*.conf")
+    _deletefile(settings.R66_ETC_DIR
+                    + "/wpa_supplicant/*.conf")
+
 
     netifaces = models.NetIface.objects.all()
     for n in netifaces:
@@ -48,28 +82,41 @@ def apply_changes(request):
             if type_ == "bridge":
                 # wifi can be only master mode
                 if n.wifi_device:
-                    print p.to_hostapd_conf()
+                    strings = p.to_hostapd_conf()
+                    _writefile(strings, settings.R66_ETC_DIR
+                        + "/hostapd/" + n.name + ".conf")
+
 
             if type_ == "internal":
                 # cannot be p.dhcp == True
-                ntp_conf = p.to_ntp_conf()
+                _tmp = p.to_ntp_conf()
+                if _tmp != "":
+                    ntp_conf = _tmp
 
                 # wifi can be only master mode
                 if n.wifi_device:
-                    print p.to_hostapd_conf()
+                    strings = p.to_hostapd_conf()
+                    _writefile(strings, settings.R66_ETC_DIR
+                        + "/hostapd/" + n.name + ".conf")
+
 
                 if p.dhcpd_settings  \
                         and p.dhcpd_settings.enabled:
-                    print p.to_dhcpd_conf()
+                    dhcpd_conf += p.to_dhcpd_conf()
 
 
             if type_ == "external":
                 if not p.net_settings.dhcp:
-                    ntp_conf = p.to_ntp_conf()
+                    _tmp = p.to_ntp_conf()
+                    if _tmp != "":
+                        ntp_conf = _tmp
+
 
                 # wifi can be only client mode
                 if n.wifi_device:
-                    print p.to_wpa_supplicant_conf()
+                    strings = p.to_wpa_supplicant_conf()
+                    _writefile(strings, settings.R66_ETC_DIR
+                        + "/wpa_supplicant/" + n.name + ".conf")
 
             if type_ == "unused":
                 pass # nothing to do
@@ -77,8 +124,18 @@ def apply_changes(request):
       except Exception, e:
           messages.append(str(e))
 
-    print network_interfaces
-    print ntp_conf
+    strings = network_interfaces
+    _writefile(strings, settings.R66_ETC_DIR
+                        + "/network/interfaces")
+
+    strings = ntp_conf
+    _writefile(strings, settings.R66_ETC_DIR
+                        + "/ntp.conf")
+
+    strings = dhcpd_conf
+    _writefile(strings, settings.R66_ETC_DIR
+                        + "/dhcp/dhcpd.conf")
+
 
     res = {"status":messages}
 
