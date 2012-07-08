@@ -479,12 +479,12 @@ function toggle_wifi_settings_forms() {
 
       error = error + '    </ul>'
         + '</div>';
-      $("#alert-error").replaceWith(error);
-      $("#alert-info").replaceWith('<div id="alert-info"></div>');
+      info = '<div id="alert-info"></div>';
+      $("#alerts").replaceWith( '<div id="alerts">' + info + error + '</div>');
      }
      else 
      {
-       $("#alert-error").replaceWith('<div id="alert-error"></div>');
+       error = '<div id="alert-error"></div>';
        info = '<div id="alert-info" class="alert alert-info">'
         + '  <button class="close" data-dismiss="alert">×</button>'
         + '    <ul>'
@@ -492,7 +492,7 @@ function toggle_wifi_settings_forms() {
         + '    </ul>'
         + '</div>';
 
-       $("#alert-info").replaceWith(info);
+       $("#alerts").replaceWith( '<div id="alerts">' + info + error + '</div>');
     }
     
     // profile_id is returned by send_netiface_profile ajax action

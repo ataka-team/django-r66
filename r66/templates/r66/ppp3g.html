@@ -45,9 +45,11 @@
 
      // Updating netifaces profiles navside
      // Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
-
+    
+     
      if (data.status.length > 0)
      {
+       info = '<div id="alert-info"></div>';
        error = '<div id="alert-error" class="alert alert-error">'
         + '  <button class="close" data-dismiss="alert">×</button>'
 				+ '    <ul>';
@@ -58,7 +60,7 @@
 
       error = error + '    </ul>'
         + '</div>';
-		  $("#alert-error").replaceWith(error);
+		  $("#alerts").replaceWith( '<div id="alerts">' + info + error + '</div>');
 		 }
 		 else 
 		 {
@@ -69,10 +71,8 @@
         + '    </ul>'
         + '</div>';
 
-			 $("#alert-info").replaceWith(info);
-
-			 window.location.href = "{% url r66-success %}";
-
+       error = '<div id="alert-error"></div>';
+      $("#alerts").replaceWith( '<div id="alerts">' + info + error + '</div>');
     }
 
   }
