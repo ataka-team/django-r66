@@ -354,7 +354,9 @@ def send_netiface_profile(request, form):
         netiface_profile.dhcpd_settings = dhcpd_settings
         netiface_profile.save()
 
-    return simplejson.dumps({'status':message})
+        p = netiface_profile
+
+    return simplejson.dumps({'status':message, 'profile_id':p.id})
 
 
 
