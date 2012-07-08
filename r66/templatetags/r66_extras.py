@@ -56,18 +56,20 @@ def render_nav_menu(page_id):
                 + reverse('r66-interfaces-index',args=None) \
                 + '''">Interfaces</a></li> '''
 
-    if len (r66.models.NetBridge.objects.all() ) > 0:
-        _menu = _menu + '''<li ''' \
-                + _aux_active_class(page_id,"bridges") \
-                + ''' > <a href="''' + reverse('r66-bridges',args=None) \
-                + '''">Bridges</a></li> '''
+    # if len (r66.models.NetBridge.objects.all() ) > 0:
+    #     _menu = _menu + '''<li ''' \
+    #             + _aux_active_class(page_id,"bridges") \
+    #             + ''' > <a href="''' + reverse('r66-bridges',args=None) \
+    #             + '''">Bridges</a></li> '''
 
-    _menu = _menu + ''' <li ''' \
-                + _aux_active_class(page_id,"about") \
-                + ''' ><a href="#about">About</a></li>
-                <li ''' \
-                + _aux_active_class(page_id,"contact") \
-                + ''' ><a href="#contact">Contact</a></li>
+    # _menu = _menu + ''' <li ''' \
+    #             + _aux_active_class(page_id,"about") \
+    #             + ''' ><a href="#about">About</a></li>
+    #             <li ''' \
+    #             + _aux_active_class(page_id,"contact") \
+    #             + ''' ><a href="#contact">Contact</a></li>'''
+
+    _menu = _menu + '''
             </ul>
           </div><!--/.nav-collapse -->'''
 
@@ -86,10 +88,6 @@ def render_home_menu(page_id):
                 + ''' > <a href="''' + reverse('r66-home',args=["interfaces"]) \
                 + '''">Interfaces</a></li>
                 <li ''' \
-                + if_equal_res(page_id, "bridges",'class="active"','') \
-                + ''' > <a href="''' + reverse('r66-home',args=["bridges"]) \
-                + '''">Bridges</a></li>
-                <li ''' \
                 + if_equal_res(page_id, "ppp3g",'class="active"','') \
                 + ''' > <a href="''' + reverse('r66-home',args=["ppp3g"]) \
                 + '''">PPP/3G</a></li>
@@ -100,6 +98,12 @@ def render_home_menu(page_id):
                 + '''">Search network devices</a></li>
             </ul>
           </div><!--/.well -->'''
+
+    # TODO: Bridges are not supported yet
+    #              <li ''' \
+    #              + if_equal_res(page_id, "bridges",'class="active"','') \
+    #              + ''' > <a href="''' + reverse('r66-home',args=["bridges"]) \
+    #              + '''">Bridges</a></li>
 
     return _menu
 
