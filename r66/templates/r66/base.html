@@ -68,7 +68,7 @@
             </a>
             <ul class="dropdown-menu">
               <li class="divider"></li>
-							<li><a href="{% url r66-logout %}">Sign Out</a></li>
+              <li><a href="{% url r66-logout %}">Sign Out</a></li>
             </ul>
             {% else %}
             <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
@@ -107,15 +107,17 @@
               <li><a href="#">Link</a></li>
               <li><a href="#">Link</a></li>
             </ul>
-					</div><!--/.well -->
+          </div><!--/.well -->
         {% endblock sidebar %}
-				<p>
-        <button class="btn btn-large btn-inverse"> <i class="icon-refresh"></i> Reboot system</button>
+        <p>
+          <button class="btn btn-large btn-inverse" 
+              onclick="reboot();"> 
+            <i class="icon-refresh"></i> Reboot system</button>
         </p> 
         <p>
-					<button id="btn-apply-changes" class="btn btn-large btn-danger"
-					    onclick="apply_changes();"> 
-						<i class="icon-ok"></i> Apply changes</button>
+          <button id="btn-apply-changes" class="btn btn-large btn-danger"
+              onclick="apply_changes();"> 
+            <i class="icon-ok"></i> Apply changes</button>
         </p>
 
         </div><!--/span-->
@@ -124,16 +126,56 @@
 {% addtoblock "js" %}
 <script type="text/javascript">
   function configuration_changed_js_callback(data){
-		if ( data["changed"])
-		{
-		  $("#btn-apply-changes").show()
-		}
-		else
-		{
-		  $("#btn-apply-changes").hide()
-		}
+    if ( data["changed"])
+    {
+      $("#btn-apply-changes").show()
+    }
+    else
+    {
+      $("#btn-apply-changes").hide()
+    }
 
-	}
+  }
+
+
+  function reboot_callback(data){
+
+     if (data.status.length > 0)
+     {
+       error = '<div id="alert-error" class="alert alert-error">'
+        + '  <button class="close" data-dismiss="alert">×</button>'
+        + '    <ul>';
+
+        for (message in data.status){
+          error = error + "<li>" + data.status[message] + "</li>";
+        }
+
+      error = error + '    </ul>'
+        + '</div>';
+      info = '<div id="alert-info"></div>';
+      $("#alerts").replaceWith( '<div id="alerts">' + info + error + '</div>');
+     }
+     else 
+     {
+       error = '<div id="alert-error"></div>';
+       info = '<div id="alert-info" class="alert alert-info">'
+        + '  <button class="close" data-dismiss="alert">×</button>'
+        + '    <ul>'
+        + '      <li> Action completed </li>'
+        + '    </ul>'
+        + '</div>';
+
+       $("#alerts").replaceWith( '<div id="alerts">' + info + error + '</div>');
+    }
+
+  }
+
+
+  function reboot(){
+    Dajaxice.r66.reboot(reboot_callback);
+    return false;
+  }
+
 
   function apply_changes_callback(data){
 
@@ -141,28 +183,28 @@
      {
        error = '<div id="alert-error" class="alert alert-error">'
         + '  <button class="close" data-dismiss="alert">×</button>'
-				+ '    <ul>';
+        + '    <ul>';
 
-				for (message in data.status){
+        for (message in data.status){
           error = error + "<li>" + data.status[message] + "</li>";
-				}
+        }
 
       error = error + '    </ul>'
         + '</div>';
-		  $("#alert-error").replaceWith(error);
-		 }
-		 else 
-		 {
-		   info = '<div id="alert-info" class="alert alert-info">'
+      $("#alert-error").replaceWith(error);
+     }
+     else 
+     {
+       info = '<div id="alert-info" class="alert alert-info">'
         + '  <button class="close" data-dismiss="alert">×</button>'
         + '    <ul>'
         + '      <li> Correctly updated </li>'
         + '    </ul>'
         + '</div>';
 
-			 $("#alert-info").replaceWith(info);
+       $("#alert-info").replaceWith(info);
 
-			 window.location.href = "{% url r66-success %}";
+       window.location.href = "{% url r66-success %}";
 
     }
 
@@ -186,7 +228,7 @@
 {% endaddtoblock %}
 
         <!-- content -->
-				<div class="span9">
+        <div class="span9">
 
           <div class="hero-unit">
             {% block content_title %}
@@ -195,7 +237,7 @@
             {% block content_description %}
               {% if content_description %}<p>{{ content_description }}</p>{% endif %}
             {% endblock %}
-					</div>
+          </div>
 
           <div id="alerts"> 
           <!-- error-messages -->
@@ -209,8 +251,8 @@
                 {% endfor %}
               </ul>
           </div>
-			  	{% else %}
-				  <div id="alert-error"> </div>
+          {% else %}
+          <div id="alert-error"> </div>
           {% endif %}
           {% endblock %}
           <!-- /error-messages -->
@@ -227,9 +269,9 @@
                 {% endfor %}
               </ul>
             </li>
-  				</div>
-	  			{% else %}
-		  		<div id="alert-info">  </div/>
+          </div>
+          {% else %}
+          <div id="alert-info">  </div/>
           {% endif %}
           {% endblock %}
           <!-- /messages -->

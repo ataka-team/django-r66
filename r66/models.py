@@ -242,6 +242,15 @@ class DhcpdSettings(models.Model):
             max_length=100,
             blank=True, null=True,)
 
+    broadcast_address = models.CharField(
+            _("Broadcast address (broadcast-address)"),
+            max_length=100,
+            blank=True, null=True,)
+
+    range_min = models.IPAddressField(blank=True, null=True)
+
+    range_max = models.IPAddressField(blank=True, null=True)
+
     default_lease_time = models.IntegerField(
             _("Default lease time (default-lease-time)"),
             blank=True, null=True,)
@@ -519,6 +528,16 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
             if not sets.enabled:
                 return ""
 
+            if self.netiface_type == "bridge" \
+                    or self.netiface_type == "internal":
+                params = ""
+                params += \
+                  "post-up /usr/sbin/hostapd -B -P /var/run/hostapd_%s.pid %s/hostapd/%s.conf\n" \
+                  % (name, settings.R66_ETC_DIR, name)
+                params += \
+                  "post-down kill -9 `cat /var/run/hostapd_%s.pid`" % (name)
+                return params
+
             if sets.wifi == "NONE":
                 return ""
 
@@ -559,12 +578,12 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
                     wifi_params += "wireless_defaultkey " + wep_defaultkey + "\n"
 
 
-
             if sets.wifi == "WPA":
                 wifi_params += "wpa-driver wext\n"
                 wifi_params += \
-                  "%s/wpa_supplicant/%s.conf\n" \
+                  "wpa-conf %s/wpa_supplicant/%s.conf\n" \
                   % (settings.R66_ETC_DIR, name)
+
 
             return wifi_params
 
@@ -595,8 +614,15 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
 '''
 auto %s
 iface %s inet manual
+%s
 '''
             return res % (name,name)
+            if is_wifi:
+                wifi_params = self._generate_wifi_params()
+            else:
+                wifi_params = ""
+            params = static_params + wifi_params
+            return res % (name, name,params)
 
         if type_ == "internal":
 
@@ -607,10 +633,12 @@ iface %s inet static
 %s
 '''
             static_params = self._generate_static_params()
-            # no wifi params needed because internal netiface wifi is only
-            # available on master mode and this setup is configurable on
-            # hostapd conffile.
-            return res % (name, name,static_params)
+            if is_wifi:
+                wifi_params = self._generate_wifi_params()
+            else:
+                wifi_params = ""
+            params = static_params + wifi_params
+            return res % (name, name,params)
 
         if type_ == "external":
 
@@ -698,7 +726,7 @@ network={
                 wpa_psk = sets.wpa_psk
             wpa_psk = netutils.get_wpa_passphrase(\
                         ssid, wpa_psk)
-            wpa_params += 'psk="%s"\n' % wpa_psk
+            wpa_params += 'psk=%s\n' % wpa_psk
 
         return skeleton % wpa_params
 
@@ -712,9 +740,7 @@ subnet %s netmask %s {
 
 %s
 
-   pool {
         allow unknown-clients;
-   }
 
 }
 
@@ -745,7 +771,7 @@ subnet %s netmask %s {
                 % name)
 
         if sets.authoritative:
-            dhcpd_params += "option authoritative;\n"
+            dhcpd_params += "authoritative;\n"
 
         dns = get_str_or_empty_str(sets.dns)
         if dns != "":
@@ -762,10 +788,14 @@ subnet %s netmask %s {
             dhcpd_params += "option broadcast-address " + broadcast_address + " ;\n"
         default_lease_time = get_str_or_empty_str(sets.default_lease_time)
         if default_lease_time != "":
-            dhcpd_params += "option default-lease-time " + str(default_lease_time) + " ;\n"
+            dhcpd_params += "default-lease-time " + str(default_lease_time) + " ;\n"
         max_lease_time = get_str_or_empty_str(sets.max_lease_time)
         if max_lease_time != "":
-            dhcpd_params += "option max_lease_time " + str(max_lease_time) + " ;\n"
+            dhcpd_params += "max-lease-time " + str(max_lease_time) + " ;\n"
+
+        range_min = get_str_or_empty_str(sets.range_min)
+        range_max = get_str_or_empty_str(sets.range_max)
+        dhcpd_params += "range " + str(range_min) + " " + str(range_max)+ " ;\n"
 
 
 
@@ -778,6 +808,7 @@ subnet %s netmask %s {
 '''
 interface=%s
 ssid=%s
+channel=1
 macaddr_acl=0
 auth_algs=1
 ignore_broadcast_ssid=%s

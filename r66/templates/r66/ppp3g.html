@@ -73,7 +73,11 @@
 
        error = '<div id="alert-error"></div>';
       $("#alerts").replaceWith( '<div id="alerts">' + info + error + '</div>');
-    }
+		 }
+		 
+		 // From base.html template
+     $("#btn-apply-changes").hide()
+     Dajaxice.r66.configuration_changed(configuration_changed_js_callback);
 
   }
 

@@ -79,7 +79,7 @@ def success(request):
 
     context_dict = RequestContext(request, {
             'title': 'Successful operation',
-            'content_description': 'Operation performed so successful.',
+            'content_description': 'Operation successful.',
             })
     context_dict["page_id"] = "success"
     return render_to_response('r66/success.html', context_dict)

@@ -6,7 +6,9 @@ from r66 import  models
 class NetSettingsForm(django.forms.ModelForm):
     class Meta:
         model = models.NetSettings
-        fields = ("dhcp", "masquerade")
+        # TODO: masquerade setup is not supported yet
+        # fields = ("dhcp", "masquerade")
+        fields = ("dhcp",)
 
 class NetSettingsExtendedForm(django.forms.ModelForm):
     class Meta:

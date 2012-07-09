@@ -504,7 +504,12 @@ function toggle_wifi_settings_forms() {
       selected_profile = undefined;
     }
     
-    Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
+		Dajaxice.r66.get_netifaces(get_netifaces_js_callback);
+
+		// From base.html template
+    $("#btn-apply-changes").hide()
+    Dajaxice.r66.configuration_changed(configuration_changed_js_callback);
+
 
   }
 

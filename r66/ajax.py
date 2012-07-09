@@ -3,6 +3,9 @@ from django.core import serializers
 from dajaxice.decorators import dajaxice_register
 from django.conf import settings
 
+from django.db import transaction
+
+
 from dajaxice.core import dajaxice_functions
 import netutils
 import models
@@ -11,6 +14,14 @@ import forms
 
 import os
 import subprocess
+import time
+
+def _reboot():
+  subprocess.Popen( "reboot",
+          shell=True, bufsize=0,
+          stdout=open('/dev/null','w'),
+          stderr=open('/dev/null','w'))
+
 
 def _deletefile(filename):
   subprocess.Popen( "rm -f " + filename,
@@ -26,12 +37,19 @@ def _writefile(strings,filename):
         _d = _d + i + os.sep
         try:
           os.mkdir(_d)
-        except Exception:
+        except Exception, e:
           pass
     f = open(filename, 'w')
     f.write(strings)
     f.close()
 
+@transaction.commit_on_success
+@dajaxice_register
+def reboot(request):
+    _reboot()
+    return simplejson.dumps({'status':message})
+
+@transaction.commit_on_success
 @dajaxice_register
 def configuration_changed(request):
     status = models.get_status()
@@ -39,6 +57,7 @@ def configuration_changed(request):
     res = status.to_dict()
     return simplejson.dumps(res)
 
+@transaction.commit_on_success
 @dajaxice_register
 def apply_changes(request):
     messages = []
@@ -48,13 +67,19 @@ def apply_changes(request):
     ntp_conf = ""
     dhcpd_conf = "log-facility local7;\n\n"
 
+    _deletefile(settings.R66_ETC_DIR
+                    + "/ppp/peers/r66")
+    _deletefile(settings.R66_ETC_DIR
+                    + "/ppp/r66.chat")
+    _deletefile(settings.R66_ETC_DIR
+                    + "/hostapd/*.conf")
+    _deletefile(settings.R66_ETC_DIR
+                    + "/wpa_supplicant/*.conf")
+
+    time.sleep(3)
+
     ppp = models.NetPPP.objects.all()
     for p in ppp:
-        _deletefile(settings.R66_ETC_DIR
-                    + "/ppp/peers/r66")
-        _deletefile(settings.R66_ETC_DIR
-                    + "/ppp/r66.chat")
-
         if p.enabled:
             strings = p.to_peer()
             _writefile(strings, settings.R66_ETC_DIR
@@ -62,11 +87,6 @@ def apply_changes(request):
             strings = p.to_chat()
             _writefile(strings, settings.R66_ETC_DIR
                     + "/ppp/r66.chat")
-
-    _deletefile(settings.R66_ETC_DIR
-                    + "/hostapd/*.conf")
-    _deletefile(settings.R66_ETC_DIR
-                    + "/wpa_supplicant/*.conf")
 
 
     netifaces = models.NetIface.objects.all()
@@ -140,12 +160,13 @@ def apply_changes(request):
     res = {"status":messages}
 
     if len (messages)== 0:
-        # status.unmark_as_changed()
+        status.unmark_as_changed()
         pass
 
     return simplejson.dumps(res)
 
 
+@transaction.commit_on_success
 @dajaxice_register
 def search_devices(request):
     ifaces = netutils.get_interfaces_names()
@@ -171,6 +192,7 @@ def search_devices(request):
     return simplejson.dumps(res)
 
 
+@transaction.commit_on_success
 @dajaxice_register
 def get_netifaces(request):
     ifaces = models.NetIface.objects.all()
@@ -182,6 +204,7 @@ def get_netifaces(request):
     return data
 
 
+@transaction.commit_on_success
 @dajaxice_register
 def get_netiface_profiles(request):
     iface_profiles = models.NetIfaceProfile.objects.all()
@@ -192,6 +215,7 @@ def get_netiface_profiles(request):
     return data
 
 
+@transaction.commit_on_success
 @dajaxice_register
 def delete_netiface_profile(request, id):
     message = []
@@ -218,6 +242,7 @@ def delete_netiface_profile(request, id):
     return simplejson.dumps({'status':message})
 
 
+@transaction.commit_on_success
 @dajaxice_register
 def send_3gppp(request, form):
     message = []
@@ -250,7 +275,7 @@ def send_3gppp(request, form):
 
 
 
-
+@transaction.commit_on_success
 @dajaxice_register
 def send_netiface_profile(request, form):
     message = []
@@ -418,6 +443,7 @@ def send_netiface_profile(request, form):
 
 
 
+@transaction.commit_on_success
 @dajaxice_register
 def add_netiface(request,name):
     _objs = models.NetIface.objects.filter(name=name)
@@ -430,6 +456,7 @@ def add_netiface(request,name):
 
     return search_devices(request)
 
+@transaction.commit_on_success
 @dajaxice_register
 def delete_netiface(request,name):
     _objs = models.NetIface.objects.filter(name=name)
@@ -441,6 +468,7 @@ def delete_netiface(request,name):
 
     return search_devices(request)
 
+@transaction.commit_on_success
 @dajaxice_register
 def enable_netiface(request,name):
     _objs = models.NetIface.objects.filter(name=name)
@@ -453,6 +481,7 @@ def enable_netiface(request,name):
 
     return get_netifaces(request)
 
+@transaction.commit_on_success
 @dajaxice_register
 def disable_netiface(request,name):
     _objs = models.NetIface.objects.filter(name=name)
@@ -465,6 +494,7 @@ def disable_netiface(request,name):
 
     return get_netifaces(request)
 
+@transaction.commit_on_success
 @dajaxice_register
 def get_netbridges(request):
     bridges = models.NetBridge.objects.all()
@@ -477,6 +507,7 @@ def get_netbridges(request):
     return data
 
 
+@transaction.commit_on_success
 @dajaxice_register
 def add_netbridge(request,name, description=""):
     _objs = models.NetBridge.objects.filter(name=name)
@@ -489,6 +520,7 @@ def add_netbridge(request,name, description=""):
 
     return get_netbridges(request)
 
+@transaction.commit_on_success
 @dajaxice_register
 def delete_netbridge(request,name):
     _objs = models.NetBridge.objects.filter(name=name)
@@ -500,6 +532,7 @@ def delete_netbridge(request,name):
 
     return get_netbridges(request)
 
+@transaction.commit_on_success
 @dajaxice_register
 def enable_netbridge(request,name):
     _objs = models.NetBridge.objects.filter(name=name)
@@ -512,6 +545,7 @@ def enable_netbridge(request,name):
 
     return get_netbridges(request)
 
+@transaction.commit_on_success
 @dajaxice_register
 def disable_netbridge(request,name):
     _objs = models.NetBridge.objects.filter(name=name)

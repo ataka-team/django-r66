@@ -5,7 +5,7 @@ IFCONFIG = "/sbin/ifconfig"
 CMD_IP = "/bin/ip"
 CMD_IWCONFIG = "/sbin/iwconfig"
 CMD_BRCTL = "/sbin/brctl"
-CMD_WPA_PASSPHRASE = "/usr/sbin/wpa_passphrase"
+CMD_WPA_PASSPHRASE = "/usr/bin/wpa_passphrase"
 
 def get_wpa_passphrase(ssid, passphrase):
   pipe = subprocess.Popen( CMD_WPA_PASSPHRASE + " " + ssid + " "
