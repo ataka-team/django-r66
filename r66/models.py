@@ -11,8 +11,9 @@ PPP_MODE_CHOICES = [
     ('none', _('None')),
 ]
 
+# TODO: Currently unsupported
+#     ('bridge', _('Network bridge')),
 NETIFACE_TYPE_CHOICES = [
-    ('bridge', _('Network bridge')),
     ('external', _('External network')),
     ('internal', _('Internal network')),
     ('unused', _('Unused network')),
