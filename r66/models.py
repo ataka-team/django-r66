@@ -525,9 +525,9 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
                   metric = " metric %s" % str(metric)
               static_params += "post-up ip route add default via " + gateway + metric + "\n"
 
-              static_params += "post-down ip rule delete table " + name + "\n"
-              static_params += "post-up ip rule add table " + name + " priority 32767\n"
-              static_params += "post-up ip route add default via " + gateway + " table " + name + metric + "\n"
+              # static_params += "post-down ip rule delete table " + name + "\n"
+              # static_params += "post-up ip rule add table " + name + " priority 32767\n"
+              # static_params += "post-up ip route add default via " + gateway + " table " + name + metric + "\n"
 
             if dns1 != "" or dns2 != "":
               static_params += "dns-nameservers " + \
