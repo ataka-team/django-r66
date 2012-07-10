@@ -106,7 +106,7 @@ if __name__ == "__main__":
         # print g
         metric = MAX_METRIC
         if ping_alive(g["gateway"]):
-            if g.has_key("orig_metric")
+            if g.has_key("orig_metric"):
                 metric = g["orig_metric"]
             else:
                 metric = 100
