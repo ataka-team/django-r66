@@ -62,17 +62,6 @@ def login_user(request):
 
     return render_to_response('r66/auth.html',context_dict)
 
-@login_required
-def index(request):
-
-    context_dict = {}
-    context_dict = RequestContext(request)
-    context_dict = RequestContext(request, {
-            'title': 'Title',
-            'content_description': 'Description for this content',
-            })
-    return render_to_response('r66/index.html', context_dict)
-
 
 @login_required
 def success(request):
@@ -255,5 +244,14 @@ def interfaces_index (request):
 @login_required
 def interfaces_new (request):
     return interfaces(request, None)
+
+
+@login_required
+def index(request):
+    return home(request, "interfaces")
+
+@login_required
+def anyother(request):
+    return home(request, "anyother")
 
 

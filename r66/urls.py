@@ -5,9 +5,16 @@ urlpatterns = patterns('r66.views',
         'logout_user',
         None, 'r66-logout'),
 
+    (r'^$',
+        'index',
+        None, 'r66'),
+    (r'^$/',
+        'index',
+        None, 'r66-root'),
     (r'^index.html$',
         'index',
         None, 'r66-index'),
+
     (r'^success.html$',
         'success',
         None, 'r66-success'),
@@ -30,8 +37,6 @@ urlpatterns = patterns('r66.views',
     (r'^interfaces/(?P<profile_id>\d+)$',
         'interfaces',
         None, 'r66-interfaces-profile'),
-
-
 
 
 
