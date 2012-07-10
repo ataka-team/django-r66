@@ -478,7 +478,7 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
             metric_params = ""
 
             if metric != "":
-                metric_params += "metric %s\n" % metric
+                metric_params += "metric %s\n" % str(metric)
 
             return metric_params
 
