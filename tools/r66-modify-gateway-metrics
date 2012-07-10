@@ -106,7 +106,10 @@ if __name__ == "__main__":
         # print g
         metric = MAX_METRIC
         if ping_alive(g["gateway"]):
-            metric = g["orig_metric"]
+            if g.has_key("orig_metric")
+                metric = g["orig_metric"]
+            else:
+                metric = 100
             print g["gateway"] + " is alive. metric = " + metric
         else:
             print g["gateway"] + " is not alive. metric = " + metric
