@@ -112,6 +112,8 @@ class NetSettings(models.Model):
     ntp1 = models.IPAddressField(blank=True, null=True)
     ntp2 = models.IPAddressField(blank=True, null=True)
 
+    metric = models.IntegerField(blank=True, null=True)
+
     def save(self, *args, **kwargs):
       get_status().mark_as_changed()
 
@@ -464,6 +466,23 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
       super(NetIfaceProfile, self).save(*args, **kwargs)
 
 
+    def _generate_metric_params(self):
+            name = self.netiface.name
+
+            if not self.net_settings:
+              raise Error("NetIfaceProfile for %s NetIface is wrong configured"
+                % name)
+
+            metric = get_str_or_empty_str(self.net_settings.metric)
+
+            metric_params = ""
+
+            if metric != "":
+                metric_params += "metric %s" % metric
+
+            return metric_params
+
+
     def _generate_static_params(self):
             name = self.netiface.name
 
@@ -616,12 +635,12 @@ auto %s
 iface %s inet manual
 %s
 '''
-            return res % (name,name)
+            metric_params = self._generate_metric_params()
             if is_wifi:
                 wifi_params = self._generate_wifi_params()
             else:
                 wifi_params = ""
-            params = static_params + wifi_params
+            params = metric_params + static_params + wifi_params
             return res % (name, name,params)
 
         if type_ == "internal":
@@ -632,12 +651,13 @@ auto %s
 iface %s inet static
 %s
 '''
+            metric_params = self._generate_metric_params()
             static_params = self._generate_static_params()
             if is_wifi:
                 wifi_params = self._generate_wifi_params()
             else:
                 wifi_params = ""
-            params = static_params + wifi_params
+            params = metric_params + static_params + wifi_params
             return res % (name, name,params)
 
         if type_ == "external":
@@ -649,6 +669,8 @@ iface %s inet %s
 %s
 %s
 '''
+            metric_params = self._generate_metric_params()
+
             if self.net_settings.dhcp:
                 mode = "dhcp"
                 static_params = ""
@@ -661,7 +683,7 @@ iface %s inet %s
             else:
                 wifi_params = ""
 
-            return res % (name, name, mode, static_params, wifi_params)
+            return res % (name, name, mode, metric_params, static_params, wifi_params)
 
 
         if type_ == "external":
