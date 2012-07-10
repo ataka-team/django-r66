@@ -635,12 +635,11 @@ auto %s
 iface %s inet manual
 %s
 '''
-            metric_params = self._generate_metric_params()
             if is_wifi:
                 wifi_params = self._generate_wifi_params()
             else:
                 wifi_params = ""
-            params = metric_params + static_params + wifi_params
+            params = static_params + wifi_params
             return res % (name, name,params)
 
         if type_ == "internal":
