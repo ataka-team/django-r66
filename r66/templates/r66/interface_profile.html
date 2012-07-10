@@ -413,7 +413,14 @@ function toggle_wifi_settings_forms() {
       {
         active = 'class="active"';
       }
-      
+
+      var netiface_type = "";
+      if ( profile["fields"]["netiface_type"] )
+      {
+        netiface_type = " - " + profile["fields"]["netiface_type"];
+      }
+
+     
       var enabled = "";
       if ( profile["fields"]["enabled"] )
       {
@@ -423,7 +430,7 @@ function toggle_wifi_settings_forms() {
       items[profile["fields"]["netiface"]].push(
         '<li ' + active + '>'
           + '<a href="{% url r66-interfaces  %}' + profile["pk"] + '">'
-          + profile["pk"] + enabled  
+          + "Profile " + profile["pk"] + netiface_type + enabled  
           + '</a>'
           + '</li>'
       );

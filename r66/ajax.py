@@ -210,7 +210,8 @@ def get_netiface_profiles(request):
     iface_profiles = models.NetIfaceProfile.objects.all()
 
     data = serializers.serialize('json', iface_profiles,
-        fields=('name','description', 'enabled', 'netiface', 'netiface_type'))
+        fields=('name','description', 'enabled', 'netiface',
+            'netiface_type'))
 
     return data
 
