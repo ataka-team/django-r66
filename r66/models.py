@@ -520,7 +520,14 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
             static_params += "address " + ip + "\n"
             static_params += "netmask " + netmask + "\n"
             if gateway != "":
-              static_params += "gateway " + gateway + "\n"
+              metric = get_str_or_empty_str(self.net_settings.metric)
+              if metric != "":
+                  metric = " metric %s" % str(metric)
+              static_params += "post-up ip route add default via " + gateway + metric + "\n"
+
+              static_params += "post-down ip rule delete table " + name + "\n"
+              static_params += "post-up ip rule add table " + name + " priority 32767\n"
+              static_params += "post-up ip route add default via " + gateway + " table " + name + metric + "\n"
 
             if dns1 != "" or dns2 != "":
               static_params += "dns-nameservers " + \
@@ -551,7 +558,7 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
                     or self.netiface_type == "internal":
                 params = ""
                 params += \
-                  "post-up /usr/sbin/hostapd -B -P /var/run/hostapd_%s.pid %s/hostapd/%s.conf\n" \
+                  "pre-up /usr/sbin/hostapd -B -P /var/run/hostapd_%s.pid %s/hostapd/%s.conf\n" \
                   % (name, settings.R66_ETC_DIR, name)
                 params += \
                   "post-down kill -9 `cat /var/run/hostapd_%s.pid`" % (name)
@@ -665,6 +672,7 @@ iface %s inet static
 '''
 auto %s
 iface %s inet %s
+%s
 %s
 %s
 '''
@@ -950,6 +958,7 @@ class NetPPP(models.Model):
       super(NetPPP, self).save(*args, **kwargs)
 
 
+
     def to_peer(self):
         skeleton = '''
 ttyUSB0
@@ -959,7 +968,7 @@ crtscts
 modem
 passive
 novj
-defaultroute
+# defaultroute
 noipdefault
 usepeerdns
 noauth
@@ -967,7 +976,7 @@ hide-password
 persist
 holdoff 10
 maxfail 0
-debug
+# debug
 
 %s
 

@@ -8,12 +8,12 @@ class NetSettingsForm(django.forms.ModelForm):
         model = models.NetSettings
         # TODO: masquerade setup is not supported yet
         # fields = ("dhcp", "masquerade")
-        fields = ("dhcp",)
+        fields = ("dhcp","metric")
 
 class NetSettingsExtendedForm(django.forms.ModelForm):
     class Meta:
         model = models.NetSettings
-        exclude = ("dhcp", "masquerade")
+        exclude = ("dhcp", "metric", "masquerade")
 
 class WirelessSettingsForm(django.forms.ModelForm):
     class Meta:

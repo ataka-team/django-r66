@@ -1,0 +1,130 @@
+#!/usr/bin/env python
+from django.core.management import setup_environ
+import imp
+
+MAX_METRIC="500"
+
+### netutils
+import subprocess                                                                              
+                                                                                               
+IFCONFIG = "/sbin/ifconfig"                                                                    
+CMD_IP = "/bin/ip"                                                                             
+CMD_IWCONFIG = "/sbin/iwconfig"                                                                
+CMD_BRCTL = "/sbin/brctl"                                                                      
+CMD_WPA_PASSPHRASE = "/usr/bin/wpa_passphrase"   
+
+
+
+
+def ping_alive(ip):
+    ret = subprocess.call("ping -c 1 %s" % ip,
+                        shell=True,
+                        stdout=open('/dev/null', 'w'),
+                        stderr=open('/dev/null', 'w'))
+    if ret == 0:
+        return True
+    else:
+        return False
+
+
+
+def get_default_gateways():
+  res = {}
+  pipe = subprocess.Popen( CMD_IP + " route show", shell=True, bufsize=0, stdout=subprocess.PIPE).stdout
+  for l in pipe:
+    if l.startswith(" "):
+      continue
+    try:
+        if l.startswith("default"):
+          gateway = l.split(" ")[2]
+          interface = l.split(" ")[4]
+          metric = l.split(" ")[7]
+          res[interface]={
+                "interface":interface,
+                "metric":metric,
+                "gateway":gateway,
+                }
+    except Exception,e:
+        continue
+
+  return res
+
+
+
+
+### netutils
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+try:
+    imp.find_module('settings') # Assumed to be in the same directory.
+except ImportError:
+    import sys
+    sys.stderr.write('''Error: Can't find the file 'settings.py' in the
+    directory containing %r. It appears you've customized things.\n
+    You'll have to run django-admin.py, passing it your settings
+    module.\n'''
+    % __file__)
+    sys.exit(1)
+
+import settings
+
+if __name__ == "__main__":
+    # execute_manager(settings)
+    setup_environ(settings)
+
+    from r66.models import *
+
+    gateways = get_default_gateways()
+
+    np = NetIfaceProfile.objects.all()
+    for p in np:
+                if p.enabled and p.netiface and p.netiface.enabled:
+                    if p.net_settings:
+                        iface = p.netiface.name
+                        orig_metric = str(p.net_settings.metric)
+                        gw = str(p.net_settings.gateway)
+                        if gateways.has_key(iface):
+                            gateways[iface]["orig_metric"]=orig_metric
+
+
+    # print "Start: " + str(gateways)
+
+    for g in gateways.values():
+        # print g
+        metric = MAX_METRIC
+        if ping_alive(g["gateway"]):
+            metric = g["orig_metric"]
+            print g["gateway"] + " is alive. metric = " + metric
+        else:
+            print g["gateway"] + " is not alive. metric = " + metric
+
+        if g["metric"] == metric:
+            print "    " + " current metric value is " + metric + ". No action required"
+        else:
+            _cmd = CMD_IP + " route del default via " + g["gateway"] + " dev " + g["interface"]+ " metric " + g["metric"]
+            print "    " +  _cmd
+            subprocess.Popen( _cmd, shell=True,
+                bufsize=0,
+                stdout=open('/dev/null','w'),
+                stderr=open('/dev/null', 'w'))
+
+            _cmd = CMD_IP + " route replace default via " + g["gateway"] + " dev " + g["interface"]+ " metric " + metric
+            print "    " +  _cmd
+            subprocess.Popen( _cmd, shell=True,
+                bufsize=0,
+                stdout=open('/dev/null','w'),
+                stderr=open('/dev/null', 'w'))
+
