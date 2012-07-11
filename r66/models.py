@@ -466,6 +466,18 @@ NetIfaceProfile.objects.filter(netiface=self.netiface)
 
       super(NetIfaceProfile, self).save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      # if self.dhcpd_settings:
+      #     self.dhcpd_settings.delete()
+      # if self.wifi_settings:
+      #     self.wifi_settings.delete()
+      # if self.net_settings:
+      #     self.net_settings.delete()
+
+      super(NetIfaceProfile, self).delete(*args, **kwargs)
+
 
     def _generate_metric_params(self):
             name = self.netiface.name

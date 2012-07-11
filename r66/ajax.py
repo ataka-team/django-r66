@@ -47,7 +47,7 @@ def _writefile(strings,filename):
 @dajaxice_register
 def reboot(request):
     _reboot()
-    return simplejson.dumps({'status':message})
+    return simplejson.dumps({'status':[]})
 
 @transaction.commit_on_success
 @dajaxice_register
