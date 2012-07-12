@@ -1,0 +1,59 @@
+#! /bin/bash
+
+MNT_DIR=mnt/
+DEVICE=sdd.img
+PARTITION_NUMBER=1
+
+BLOCK_SIZE=512
+
+SDD1_START=2048
+SDD2_START=1026048
+SDD3_START=2050048
+
+SDD_SIZE=4098048
+SDD1_SIZE=1024000
+SDD2_SIZE=1024000
+SDD3_SIZE=2048000
+
+SDD1_OFFSET=`expr $SDD1_START \* $BLOCK_SIZE`
+SDD2_OFFSET=`expr $SDD2_START \* $BLOCK_SIZE`
+SDD3_OFFSET=`expr $SDD3_START \* $BLOCK_SIZE`
+# >>> 2048 * 512
+# 1048576
+# >>> 1026048 * 512
+# 525336576
+# >>> 2050048 * 512
+# 1049624576
+
+if [ $# -eq 3 ] 
+then
+  DEVICE=$1 
+  PARTITION_NUMBER=$2  
+  MNT_DIR=$3
+else
+  echo "Usage: $0 $DEVICE $PARTITION_NUMBER  $MNT_DIR"
+  echo "    device: $DEVICE"
+  echo "    partition number: $PARTITION_NUMBER"
+  echo "    mount dir: $MNT_DIR"
+  exit -1
+fi
+
+OFFSET=$SDD1_OFFSET
+if [ $PARTITION_NUMBER -eq 1 ] 
+then
+  OFFSET=$SDD1_OFFSET
+fi
+
+if [ $PARTITION_NUMBER -eq 2 ] 
+then
+  OFFSET=$SDD2_OFFSET
+fi
+
+if [ $PARTITION_NUMBER -eq 3 ] 
+then
+  OFFSET=$SDD3_OFFSET
+fi
+
+mount -oloop,offset=$OFFSET $DEVICE  $MNT_DIR
+
+

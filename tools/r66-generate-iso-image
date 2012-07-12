@@ -1,0 +1,168 @@
+#! /bin/bash
+
+TMP_MOUNT_DIR=mnt/
+
+NEW_DEVICE=sdd_new.img
+SDD_RFS_TAR_DIR=`pwd`
+
+BLOCK_SIZE=512
+
+SDD1_START=2048
+SDD2_START=1026048
+SDD3_START=2050048
+
+SDD_SIZE=4098048
+SDD1_SIZE=1024000
+SDD2_SIZE=1024000
+SDD3_SIZE=2048000
+
+SDD1_OFFSET=`expr $SDD1_START \* $BLOCK_SIZE`
+SDD2_OFFSET=`expr $SDD2_START \* $BLOCK_SIZE`
+SDD3_OFFSET=`expr $SDD3_START \* $BLOCK_SIZE`
+# >>> 2048 * 512
+# 1048576
+# >>> 1026048 * 512
+# 525336576
+# >>> 2050048 * 512
+# 1049624576
+
+if [ $# -eq 2 ] 
+then
+  SDD_RFS_TAR_DIR=$1
+  NEW_DEVICE=$2
+else
+  echo "Usage: $0 $SDD_RFS_TAR_DIR $NEW_DEVICE"
+  echo "    path with RFS tarballs: $SDD_RFS_TAR_DIR"
+  echo "    new device: $NEW_DEVICE"
+  exit -1
+fi
+
+
+
+rm -rf $TMP_MOUNT_DIR
+mkdir -p $TMP_MOUNT_DIR
+
+
+
+
+echo  "# Regenerating partitions ######################################################"
+dd if=/dev/zero of=tmp_sdd1.img count=$SDD1_SIZE
+dd if=/dev/zero of=tmp_sdd2.img count=$SDD2_SIZE
+dd if=/dev/zero of=tmp_sdd3.img count=$SDD3_SIZE
+
+echo "# Creating Filesystems #########################################################"
+mkfs.ext2 -F tmp_sdd1.img
+tune2fs  -c 0  -i 0 tmp_sdd1.img
+mkfs.ext2 -F tmp_sdd2.img
+tune2fs  -c 0  -i 0 tmp_sdd2.img
+mkfs.ext4 -F tmp_sdd3.img
+tune2fs  -c 0  -i 0 tmp_sdd3.img
+
+
+echo "# Restoring RFS files ##########################################################"
+
+mount -oloop tmp_sdd1.img  $TMP_MOUNT_DIR
+pushd $TMP_MOUNT_DIR
+tar --same-owner -xzpf $SDD_RFS_TAR_DIR/sdd1.tar.gz
+popd 
+sleep 5
+umount $TMP_MOUNT_DIR
+
+mount -oloop tmp_sdd2.img  $TMP_MOUNT_DIR
+pushd $TMP_MOUNT_DIR
+tar --same-owner -xzpf $SDD_RFS_TAR_DIR/sdd2.tar.gz
+popd 
+sleep 5
+umount $TMP_MOUNT_DIR
+
+mount -oloop tmp_sdd3.img  $TMP_MOUNT_DIR
+pushd $TMP_MOUNT_DIR
+tar --same-owner -xzpf $SDD_RFS_TAR_DIR/sdd3.tar.gz
+popd
+sleep 5
+umount $TMP_MOUNT_DIR
+
+
+echo "# Regenerating dd image ########################################################"
+
+dd if=/dev/zero of=$NEW_DEVICE count=$SDD_SIZE
+
+sfdisk -f $NEW_DEVICE <<EOF
+# partition table of sdd.img
+unit: sectors
+
+ sdd.img1 : start=     $SDD1_START, size=  $SDD1_SIZE, Id=83
+ sdd.img2 : start=  $SDD2_START, size=  $SDD2_SIZE, Id=83
+ sdd.img3 : start=  $SDD3_START, size=  $SDD3_SIZE, Id=83
+ sdd.img4 : start=        0, size=        0, Id= 0
+EOF
+
+install-mbr $NEW_DEVICE
+
+echo "# Dumping new partitions into dd image #########################################"
+
+dd if=tmp_sdd1.img of=$NEW_DEVICE count=$SDD1_SIZE seek=$SDD1_START
+dd if=tmp_sdd2.img of=$NEW_DEVICE count=$SDD2_SIZE seek=$SDD2_START
+dd if=tmp_sdd3.img of=$NEW_DEVICE count=$SDD3_SIZE seek=$SDD3_START
+
+
+echo "# Installing Grub ##############################################################"
+
+losetup /dev/loop0 $NEW_DEVICE
+kpartx -v -a /dev/loop0
+# losetup /dev/loop1 /dev/mapper/loop0p1
+losetup /dev/loop2 /dev/mapper/loop0p2
+if ! [ $? -eq 0 ]
+then
+    echo "Problem with losetup"
+    exit -1
+fi
+
+
+mount /dev/loop2 $TMP_MOUNT_DIR
+
+# mkdir -p $TMP_MOUNT_DIR/tmp
+# cat > $TMP_MOUNT_DIR/mnt/boot/grub/device.map<<EOF
+# (hd0)   /dev/loop0
+# (hd0,0)   /dev/loop1
+# (hd0,1)   /dev/loop2
+# EOF
+
+# mount --bind /dev $TMP_MOUNT_DIR/dev
+# chroot $TMP_MOUNT_DIR grub-mkconfig -o /boot/grub/grub.cfg
+# chroot $TMP_MOUNT_DIR grub-install --no-floppy --root-directory=/ /dev/loop2
+
+device_name=`basename $NEW_DEVICE`
+device_dir=`dirname $NEW_DEVICE`
+
+mount --bind $device_dir $TMP_MOUNT_DIR/mnt
+
+
+chroot $TMP_MOUNT_DIR grub --device-map=/dev/null --batch <<EOF
+device (hd0) mnt/$device_name
+root (hd0,1)
+setup (hd0)
+EOF
+
+echo "# Unmounting filesystem devices ################################################"
+
+# umount $TMP_MOUNT_DIR/dev
+umount $TMP_MOUNT_DIR/mnt
+umount $TMP_MOUNT_DIR
+
+# losetup -d /dev/loop1
+losetup -d /dev/loop2
+
+kpartx -v -d /dev/loop0
+losetup -d /dev/loop0
+
+
+
+
+echo "# Cleaning temporary directories and files #####################################"
+
+rmdir $TMP_MOUNT_DIR
+rm tmp_sdd1.img
+rm tmp_sdd2.img
+rm tmp_sdd3.img
+

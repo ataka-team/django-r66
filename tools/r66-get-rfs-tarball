@@ -1,0 +1,63 @@
+#! /bin/bash
+
+TMP_MOUNT_DIR=mnt/
+
+DEVICE=sdd.img
+NEW_DEVICE=sdd_new_test
+
+BLOCK_SIZE=512
+
+SDD1_START=2048
+SDD2_START=1026048
+SDD3_START=2050048
+
+SDD_SIZE=4098048
+SDD1_SIZE=1024000
+SDD2_SIZE=1024000
+SDD3_SIZE=2048000
+
+SDD1_OFFSET=`expr $SDD1_START \* $BLOCK_SIZE`
+SDD2_OFFSET=`expr $SDD2_START \* $BLOCK_SIZE`
+SDD3_OFFSET=`expr $SDD3_START \* $BLOCK_SIZE`
+# >>> 2048 * 512
+# 1048576
+# >>> 1026048 * 512
+# 525336576
+# >>> 2050048 * 512
+# 1049624576
+
+
+if [ $# -eq 1 ] 
+then
+  DEVICE=$1
+else
+  echo "Usage: $0 $DEVICE"
+  exit -1
+fi
+
+rm -rf $TMP_MOUNT_DIR
+mkdir -p $TMP_MOUNT_DIR
+
+mount -oloop,offset=$SDD1_OFFSET $DEVICE  $TMP_MOUNT_DIR
+PREVIOUS_DIR=`pwd`
+pushd $TMP_MOUNT_DIR
+tar -czpf $PREVIOUS_DIR/sdd1.tar.gz *
+popd
+umount $TMP_MOUNT_DIR
+
+mount -oloop,offset=$SDD2_OFFSET $DEVICE  $TMP_MOUNT_DIR
+PREVIOUS_DIR=`pwd`
+pushd $TMP_MOUNT_DIR
+tar -czpf $PREVIOUS_DIR/sdd2.tar.gz *
+popd
+umount $TMP_MOUNT_DIR
+
+mount -oloop,offset=$SDD3_OFFSET $DEVICE  $TMP_MOUNT_DIR 
+PREVIOUS_DIR=`pwd`
+pushd $TMP_MOUNT_DIR
+tar -czpf $PREVIOUS_DIR/sdd3.tar.gz *
+popd
+umount $TMP_MOUNT_DIR
+
+
+rm -rf $TMP_MOUNT_DIR
