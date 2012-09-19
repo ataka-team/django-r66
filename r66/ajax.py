@@ -171,7 +171,7 @@ def apply_changes(request):
     strings = smb_conf
     _writefile(strings, settings.R66_ETC_DIR
                         + "/samba/smb.conf")
-    sambautils.restart_service()
+    sambautils.reload_service()
 
     res = {"status":messages}
 

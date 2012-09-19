@@ -1087,7 +1087,7 @@ class CifsSettings(models.Model):
 
     path = models.CharField(max_length=500,
             blank=True, null=True,
-            default='/mnt/',
+            default='/export/smb/',
             )
 
     hosts_allow = models.CharField(max_length=500,
@@ -1125,12 +1125,13 @@ class CifsSettings(models.Model):
         ; name resolve order = lmhosts host wins bcast
         ; interfaces = 127.0.0.0/8 eth0
         ; bind interfaces only = yes
-        ; hosts allow = %(hosts_allow)s
+        hosts allow = %(hosts_allow)s
         log file = /var/log/samba/log.%%m
         max log size = 1000
         syslog = 0
         panic action = /usr/share/samba/panic-action %%d
         encrypt passwords = true
+        security = share
         passdb backend = tdbsam
         obey pam restrictions = yes
         unix password sync = yes
@@ -1159,6 +1160,10 @@ class CifsSettings(models.Model):
         ; winbind enum users = yes
         ; usershare max shares = 100
         ; usershare allow guests = yes
+
+        follow symlinks = yes
+        wide links = yes
+        unix extensions = no
 
         '''
         vars_ = {}
@@ -1231,8 +1236,11 @@ class CifsSettings(models.Model):
                  public=%(public)s
                  ; valid users =  root
                  ; admin users =  root
-                 force group = @root
+                 ; force group = @root
                  force user = root
+                 guest ok = yes
+                 create mask = 0660
+                 directory mask = 0770
         '''
         vars_ = {}
         vars_["disk_resource_name"] = self.disk_resource_name
