@@ -1065,3 +1065,193 @@ CONNECT ''
         return skeleton % (pin,mode,apn)
 
 
+class CifsSettings(models.Model):
+    class Meta:
+        verbose_name = 'CIFS settings'
+
+    enabled=models.BooleanField(default=False)
+
+    # workgroup = WORKGROUP    
+    workgroup = models.CharField(max_length=250,
+            default='WORKGROUP',
+            )
+
+    # usershare allow guests = yes
+    usershare_allow_guests = models.BooleanField(
+            default=True,
+            )
+
+    disk_resource_name = models.CharField(max_length=100,
+            default='CIFS disk',
+            )
+
+    path = models.CharField(max_length=500,
+            blank=True, null=True,
+            default='/mnt/',
+            )
+
+    hosts_allow = models.CharField(max_length=500,
+            blank=True, null=True,
+            default='127. 192.168. 10.121.',
+            )
+
+    writeable = models.BooleanField(
+            default=True,
+            )
+
+    browseable = models.BooleanField(
+            default=True,
+            )
+
+    public = models.BooleanField(
+            default=True,
+            )
+
+
+    def save(self, *args, **kwargs):
+      get_status().mark_as_changed()
+
+      super(CifsSettings, self).save(*args, **kwargs)
+
+
+    def to_smb_global_conf(self):
+
+        global_str = '''[global]
+
+        workgroup = %(workgroup)s
+        server string = %%h server
+        ; wins server = w.x.y.z
+        dns proxy = no
+        ; name resolve order = lmhosts host wins bcast
+        ; interfaces = 127.0.0.0/8 eth0
+        ; bind interfaces only = yes
+        ; hosts allow = %(hosts_allow)s
+        log file = /var/log/samba/log.%%m
+        max log size = 1000
+        syslog = 0
+        panic action = /usr/share/samba/panic-action %%d
+        encrypt passwords = true
+        passdb backend = tdbsam
+        obey pam restrictions = yes
+        unix password sync = yes
+        passwd program = /usr/bin/passwd %%u
+        passwd chat = *Enter\snew\s*\spassword:* %%n\\n
+        *Retype\snew\s*\spassword:* %%n\\n *password\supdated\ssuccessfully* .
+        pam password change = yes
+        map to guest = bad user
+        ; domain logons = yes
+        ; logon path = \\\%%N\profiles\%%U
+        ; logon drive = H:
+        ; logon script = logon.cmd
+        ; add user script = /usr/sbin/adduser --quiet --disabled-password --gecos "" %%u
+        ; add machine script  = /usr/sbin/useradd -g machines -c "%%u machine account" -d /var/lib/samba -s /bin/false %%u
+        ; add group script = /usr/sbin/addgroup --force-badname %%g
+        ; printing = bsd
+        ; printcap name = /etc/printcap
+        ; printing = cups
+        ; printcap name = cups
+        ; include = /home/samba/etc/smb.conf.%%m
+        ; message command = /bin/sh -c '/usr/bin/linpopup "%%f" "%%m" %%s; rm %%s' &
+        ; idmap uid = 10000-20000
+        ; idmap gid = 10000-20000
+        ; template shell = /bin/bash
+        ; winbind enum groups = yes
+        ; winbind enum users = yes
+        ; usershare max shares = 100
+        ; usershare allow guests = yes
+
+        '''
+        vars_ = {}
+        vars_["workgroup"] = self.workgroup
+        vars_["hosts_allow"] = self.hosts_allow
+        return global_str % vars_
+
+
+    def to_smb_common_resources_conf(self):
+        common_resources_str = '''
+        ;[homes]
+        ;  comment = Home Directories
+        ;  browseable = no
+        ;  read only = yes
+        ;  create mask = 0700
+        ;  directory mask = 0700
+        ;  valid users = %S
+        
+        ;[netlogon]
+        ;   comment = Network Logon Service
+        ;   path = /home/samba/netlogon
+        ;   guest ok = yes
+        ;   read only = yes
+        
+        ;[profiles]
+        ;   comment = Users profiles
+        ;   path = /home/samba/profiles
+        ;   guest ok = no
+        ;   browseable = no
+        ;   create mask = 0600
+        ;   directory mask = 0700
+        
+        ;[printers]
+        ;  comment = All Printers
+        ;  browseable = no
+        ;  path = /var/spool/samba
+        ;  printable = yes
+        ;  guest ok = no
+        ;  read only = yes
+        ;  create mask = 0700
+        
+        ;[print$]
+        ;   comment = Printer Drivers
+        ;   path = /var/lib/samba/printers
+        ;   browseable = yes
+        ;   read only = yes
+        ;   guest ok = no
+        ;   write list = root, @lpadmin
+        
+        ;[cdrom]
+        ;   comment = Cifs server's CD-ROM
+        ;   read only = yes
+        ;   locking = no
+        ;   path = /cdrom
+        ;   guest ok = yes
+        ;   preexec = /bin/mount /cdrom
+        ;   postexec = /bin/umount /cdrom
+
+        '''
+
+        return common_resources_str
+
+    def to_smb_disk_resource_conf(self):
+        smb_disk_resource_str = '''
+
+             [%(disk_resource_name)s]
+                 path=%(path)s
+                 browseable=%(browseable)s
+                 writeable=%(writeable)s
+                 public=%(public)s
+                 ; valid users =  root
+                 ; admin users =  root
+                 force group = @root
+                 force user = root
+        '''
+        vars_ = {}
+        vars_["disk_resource_name"] = self.disk_resource_name
+        vars_["path"] = self.path
+
+        if self.browseable:
+            vars_["browseable"] = "yes"
+        else:
+            vars_["browseable"] = "no"
+
+        if self.writeable:
+            vars_["writeable"] = "yes"
+        else:
+            vars_["writeable"] = "no"
+
+        if self.public:
+            vars_["public"] = "yes"
+        else:
+            vars_["pulic"] = "no"
+
+        return smb_disk_resource_str % vars_
+

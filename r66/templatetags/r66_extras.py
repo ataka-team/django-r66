@@ -10,6 +10,7 @@ menu["home"] = ["interfaces", "bridges", "search", "ppp3g", "success"]
 menu["about"] = []
 menu["bridges"] = ["bridge_profiles"]
 menu["interfaces"] = ["interface_profiles"]
+menu["cifs"] = ["cifs"]
 menu["contact"] = []
 
 register = Library()
@@ -68,6 +69,14 @@ def render_nav_menu(page_id):
     #             <li ''' \
     #             + _aux_active_class(page_id,"contact") \
     #             + ''' ><a href="#contact">Contact</a></li>'''
+
+    _menu = _menu + '''<li ''' \
+                + _aux_active_class(page_id,"cifs") \
+                + ''' > ''' \
+                + '''<a href="''' \
+                + reverse('r66-cifs-index',args=None) \
+                + '''">CIFS</a></li> '''
+
 
     _menu = _menu + '''
             </ul>

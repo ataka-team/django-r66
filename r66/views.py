@@ -255,3 +255,35 @@ def anyother(request):
     return home(request, "anyother")
 
 
+
+
+
+
+
+
+@login_required
+def cifs(request, profile_id=None):
+    page_id = "cifs"
+
+    context_dict = helpers._create_context(request)
+    context_dict["page_id"] = page_id
+    context_dict["selected_profile"] = profile_id
+    context = RequestContext(request, context_dict)
+
+    context_dict["title"] = "CIFS service"
+    context_dict["content_description"] = "CIFS/SMB server managed by R66"
+
+    try:
+      cifs = r66.models.CifsSettings.objects.all()[0]
+    except Exception:
+      cifs = r66.models.CifsSettings()
+
+
+    context_dict["samba_settings_form"] = \
+            r66.forms.CifsSettingsForm(instance = \
+              cifs, prefix="cifs"
+            )
+
+    return render_to_response('r66/cifs.html', context)
+
+

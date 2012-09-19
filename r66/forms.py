@@ -97,4 +97,8 @@ class NetPPPForm(django.forms.ModelForm):
         model = models.NetPPP
 
 
+class CifsSettingsForm(django.forms.ModelForm):
+    class Meta:
+        model = models.CifsSettings
+
 

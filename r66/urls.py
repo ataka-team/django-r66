@@ -38,6 +38,16 @@ urlpatterns = patterns('r66.views',
         'interfaces',
         None, 'r66-interfaces-profile'),
 
+    (r'^cifs/index.html$',
+        'cifs',
+        None, 'r66-cifs-index'),
+
+    (r'^cifs/$',
+        'cifs',
+        None, 'r66-cifs'),
+
+
+
 
 
 )

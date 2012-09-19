@@ -8,6 +8,7 @@ from django.db import transaction
 
 from dajaxice.core import dajaxice_functions
 import netutils
+import sambautils
 import models
 import helpers
 import forms
@@ -66,6 +67,7 @@ def apply_changes(request):
     network_interfaces = ""
     ntp_conf = ""
     dhcpd_conf = "log-facility local7;\n\n"
+    smb_conf = ""
 
     _deletefile(settings.R66_ETC_DIR
                     + "/ppp/peers/r66")
@@ -144,6 +146,16 @@ def apply_changes(request):
       except Exception, e:
           messages.append(str(e))
 
+    try:
+      cifs = models.CifsSettings.objects.all()[0]
+    except Exception:
+      cifs = models.CifsSettings()
+
+    if cifs.enabled:
+        smb_conf += cifs.to_smb_global_conf()
+        smb_conf += cifs.to_smb_common_resources_conf()
+        smb_conf += cifs.to_smb_disk_resource_conf()
+
     strings = network_interfaces
     _writefile(strings, settings.R66_ETC_DIR
                         + "/network/interfaces")
@@ -156,6 +168,10 @@ def apply_changes(request):
     _writefile(strings, settings.R66_ETC_DIR
                         + "/dhcp/dhcpd.conf")
 
+    strings = smb_conf
+    _writefile(strings, settings.R66_ETC_DIR
+                        + "/samba/smb.conf")
+    sambautils.restart_service()
 
     res = {"status":messages}
 
@@ -457,17 +473,6 @@ def add_netiface(request,name):
 
     return search_devices(request)
 
-@transaction.commit_on_success
-@dajaxice_register
-def delete_netiface(request,name):
-    _objs = models.NetIface.objects.filter(name=name)
-
-    if len(_objs)>0: # exists 
-      _objs.delete()
-    else:
-      pass
-
-    return search_devices(request)
 
 @transaction.commit_on_success
 @dajaxice_register
@@ -558,5 +563,46 @@ def disable_netbridge(request,name):
       pass
 
     return get_netbridges(request)
+
+@transaction.commit_on_success
+@dajaxice_register
+def send_cifs_settings(request, form):
+    message = []
+    form_dict = helpers.serialized_array_to_dict(form)
+    form = form_dict
+
+    try:
+      cifs = models.CifsSettings.objects.all()[0]
+    except Exception:
+      cifs = models.CifsSettings()
+
+    cifs_form = forms.CifsSettingsForm(form, instance = \
+              cifs, prefix="cifs"
+        )
+
+    valid = True
+    if not cifs_form.is_valid():
+        valid = False
+        e = cifs_form.errors
+        message = message + [e.as_ul()]
+
+    if valid:
+        cifs = cifs_form.save()
+
+    return simplejson.dumps({'status':message})
+
+
+
+@transaction.commit_on_success
+@dajaxice_register
+def delete_netiface(request,name):
+    _objs = models.NetIface.objects.filter(name=name)
+
+    if len(_objs)>0: # exists 
+      _objs.delete()
+    else:
+      pass
+
+    return search_devices(request)
 
 
