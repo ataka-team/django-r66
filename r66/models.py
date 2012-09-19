@@ -1236,7 +1236,7 @@ class CifsSettings(models.Model):
                  public=%(public)s
                  ; valid users =  root
                  ; admin users =  root
-                 ; force group = @root
+                 force group = root
                  force user = root
                  guest ok = yes
                  create mask = 0660
