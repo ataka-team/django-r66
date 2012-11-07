@@ -1,0 +1,18 @@
+#! /bin/bash
+
+R66P_ROOT="/opt/r66p/"
+R66P_DATA="/var/r66p/"
+R66P_TMP="/var/tmp/r66p/"
+
+[ -e ${R66P_DATA} ] || mkdir ${R66P_DATA}
+[ -e ${R66P_TMP} ] || mkdir ${R66P_TMP}
+
+if [ -e ${R66P_TMP}/postinstall ] 
+then
+    echo "Executing postinstall script"
+    chmod +x ${R66P_TMP}/postinstall
+    ${R66P_TMP}/postinstall
+    rm  ${R66P_TMP}/*
+    reboot
+fi
+

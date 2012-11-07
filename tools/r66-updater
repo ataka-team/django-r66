@@ -1,0 +1,61 @@
+#! /bin/bash
+
+R66P_FIRMWARE_URL="http://www.treitos.com/public/r66/new"
+# Expected file format:
+#   number=946696157  
+#   image=http://www.treitos.com/.../sdd2.img.gz
+#   md5sum=http://www.treitos.com/../sdd2.img.gz.md5sum
+#   preinstall=http://www.treitos.com/.../preinstall.sh
+#   postinstall=http://www.treitos.com/.../postinstall.sh
+
+
+
+R66P_ROOT="/opt/r66p/"
+R66P_DATA="/var/r66p/"
+R66P_TMP="/var/tmp/r66p/"
+
+mkdir ${R66P_DATA}
+mkdir ${R66P_TMP}
+
+
+wget -O ${R66P_TMP}/new $R66P_FIRMWARE_URL || exit -1
+
+NUMBER=`cat ${R66P_TMP}/new  | grep number= | cut -d "=" -f 2`
+PREINSTALL_URL=`cat ${R66P_TMP}/new  | grep preinstall= | cut -d "=" -f 2`
+POSTINSTALL_URL=`cat ${R66P_TMP}/new  | grep postinstall= | cut -d "=" -f 2`
+MD5SUM_URL=`cat ${R66P_TMP}/new  | grep md5sum= | cut -d "=" -f 2`
+IMAGE_URL=`cat ${R66P_TMP}/new  | grep image= | cut -d "=" -f 2`
+
+if [ -e ${R66P_DATA}/current_version_number ] 
+then
+    CURRENT_VERSION_NUMBER=`cat ${R66P_DATA}/current_version_number`
+    if ! [ "$CURRENT_VERSION_NUMBER" -lt "$NUMBER" ]
+    then
+        echo "No updates available"
+        exit 0
+    fi
+fi
+
+
+wget -O ${R66P_TMP}/md5sum ${MD5SUM_URL} || exit -1
+wget -O ${R66P_TMP}/preinstall ${PREINSTALL_URL} || exit -1
+wget -O ${R66P_TMP}/postinstall ${POSTINSTALL_URL} || exit -1
+wget -O ${R66P_TMP}/image ${IMAGE_URL} || exit -1
+
+
+MD5SUM_GENERATED=`md5sum ${R66P_TMP}/image | cut -d " " -f 1`
+MD5SUM_DOWNLOADED=`cat ${R66P_TMP}/md5sum | cut -d " " -f 1`
+
+echo "Comparing MD5SUM: ${MD5SUM_DOWNLOADED} = ${MD5SUM_GENERATED}."
+if [  ${MD5SUM_DOWNLOADED} != ${MD5SUM_GENERATED} ]
+then
+  echo "ERROR: md5sum missmatch" && exit -1
+fi
+
+echo "${NUMBER}" > ${R66P_DATA}/current_version_number
+chmod +x ${R66P_TMP}/preinstall 
+${R66P_TMP}/preinstall 
+
+mount  -o remount,ro /
+zcat ${R66P_TMP}/image > /dev/sda2
+reboot

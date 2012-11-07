@@ -26,6 +26,8 @@ setup(
     scripts=[
         "tools/r66-dump-image",
         "tools/r66-prepare-rfs",
+        "tools/r66-postinstall",
+        "tools/r66-updater",
     ],
     package_data={
         'r66': [

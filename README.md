@@ -4,6 +4,18 @@ django-r66
 django - route 66 application. WebUI for management of your Debian based Router
 
 
+Dumping images
+==============
+
+Building::
+
+  sudo r66-build-image -d /dev/sdd -n base_wheezy -t 006 \
+    -r /router_img_storage/ -D"new features"
+
+Restoring the image::
+
+  time zcat /router_img_storage/base_wheezy_006/images/sdd.img.gz \
+    > /dev/sdd
 
 About features
 ==============

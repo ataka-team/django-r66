@@ -1,0 +1,140 @@
+#!/usr/bin/env python
+
+from optparse import OptionParser
+import os
+import sys
+import time
+
+DEVICE="/dev/sdd"
+
+IMAGE_NAME="imagename"
+IMAGE_TAG="001"
+IMAGE_REPO_DIR="./local/r66/images"
+
+DESCRIPTION="No description"
+
+cmdline_parser = OptionParser()
+cmdline_parser.add_option("-d", "--device",  dest="device",
+        help="Image device (default: %s)" % DEVICE,
+        default=DEVICE)
+cmdline_parser.add_option("-n", "--name", dest="image_name",
+        default=IMAGE_NAME,
+        help="Work directory (default: %s)" % IMAGE_NAME)
+cmdline_parser.add_option("-t", "--tag", dest="tag",
+        default=IMAGE_TAG,
+        help="Channel Id (default: %s)" % IMAGE_TAG)
+cmdline_parser.add_option("-r", "--repository",
+        dest="repository", default=IMAGE_REPO_DIR,
+        help="Image repository directory (default: %s)" % IMAGE_REPO_DIR)
+cmdline_parser.add_option("-D", "--description",
+        dest="description", default=DESCRIPTION,
+        help="Image tag description (default: %s)" % DESCRIPTION)
+cmdline_parser.add_option("-F", "--force",
+        action="store_true", dest="force", default=False,
+        help="Force creating tag image although exists a previous one")
+
+
+
+(ops, sys.argv) = cmdline_parser.parse_args()
+
+DEVICE=ops.device
+
+IMAGE_NAME=ops.image_name
+IMAGE_TAG=ops.tag
+IMAGE_REPO_DIR=ops.repository
+
+DESCRIPTION=ops.description
+
+
+if os.path.exists(IMAGE_REPO_DIR + "/" + IMAGE_NAME + "_" + IMAGE_TAG) \
+        and not ops.force:
+            print \
+'''Error: Tag for this image already exists.
+       Force this action using -F option.'''
+            sys.exit(-1)
+
+print "Creating tag directory ..."
+_cmd ="mkdir -p " + IMAGE_REPO_DIR + "/" + IMAGE_NAME + "_" + IMAGE_TAG + "/images/"
+print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+print "Saving the image description ..."
+_cmd ='echo ' + DESCRIPTION + " > " + IMAGE_REPO_DIR + "/" +  IMAGE_NAME + "_" + IMAGE_TAG + "/ABOUT"
+print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+_cmd = "date  > " + IMAGE_REPO_DIR + "/" +  IMAGE_NAME + "_" + IMAGE_TAG + "/DATE"
+print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+
+tmp = '''
+number=%(now)s  
+image=%(path)s/images/sdd2.img.gz
+md5sum=%(path)s/images/sdd2.img.gz.md5sum
+preinstall=%(path)s/PREINSTALL
+postinstall=%(path)s/POSTINSTALL
+''' % {"now": int(time.time()), "path": "http://www.treitos.com/public/r66/" +  IMAGE_NAME + "_" + IMAGE_TAG}
+print "Generating descriptor file..."
+_cmd ='echo "' + tmp + '" > ' + IMAGE_REPO_DIR + "/" +  IMAGE_NAME + "_" + IMAGE_TAG + "/DESCRIPTOR"
+# print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+
+
+tmp = '''#! /bin/bash
+
+R66P_ROOT="/opt/r66p/"
+R66P_DATA="/var/r66p/"
+R66P_TMP="/var/tmp/r66p/"
+
+
+[ -e ${R66P_DATA} ] || mkdir ${R66P_DATA}
+[ -e ${R66P_TMP} ] || mkdir ${R66P_TMP}
+
+if ! [ -h ${R66P_ROOT}/r66.db ] 
+then
+    echo "Converting ${R66P_ROOT}/r66.db in a symbolic link to ${R66P_DATA}/r66.db"
+    mv  ${R66P_ROOT}/r66.db ${R66P_DATA}/r66.db 
+    ln -s ${R66P_DATA}/r66.db ${R66P_ROOT}/r66.db 
+fi
+
+'''
+print "Generating preinstall file..."
+_cmd ="echo '" + tmp + "' > " + IMAGE_REPO_DIR + "/" +  IMAGE_NAME + "_" + IMAGE_TAG + "/PREINSTALL"
+# print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+
+tmp = '''#! /bin/bash
+
+# Empty.
+
+'''
+print "Generating postinstall file..."
+_cmd ="echo '" + tmp + "' > " + IMAGE_REPO_DIR + "/" +  IMAGE_NAME + "_" + IMAGE_TAG + "/POSTINSTALL"
+# print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+
+
+
+_cmd = "r66-dump-image " + IMAGE_REPO_DIR + "/" + IMAGE_NAME + "_" + IMAGE_TAG + "/images/ " +  DEVICE
+print "  " +  _cmd
+_aux_f = os.popen(_cmd)
+for l in _aux_f:
+  pass
+
+
