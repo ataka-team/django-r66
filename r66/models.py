@@ -859,7 +859,7 @@ wpa_passphrase=%s
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=TKIP
 rsn_pairwise=CCMP
-
+hw_mode=g
 '''
         hostapd_params = ""
 
